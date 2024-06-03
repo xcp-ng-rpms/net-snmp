@@ -1,0 +1,42 @@
+1104293 - net-snmp OID 32 bit integer returning number larger than 32 bit signed value
+1192221 - net-snmp OID 32 bit integer returning number larger than 32 bit signed value
+
+commit 6a421248afab56035066355727380781d515c545
+Author: Jan Safranek <jsafranek@users.sourceforge.net>
+Date:   Mon Jan 26 10:40:10 2015 +0100
+
+    Fix 32 bit integeres in hrStorageTable.
+    
+    RFC says the integers are de-facto 31 bits: 1..2147483647.
+
+diff --git a/agent/mibgroup/host/hrh_storage.c b/agent/mibgroup/host/hrh_storage.c
+index ca2f854..96b7198 100644
+--- a/agent/mibgroup/host/hrh_storage.c
++++ b/agent/mibgroup/host/hrh_storage.c
+@@ -421,7 +421,7 @@ really_try_next:
+         if (store_idx > NETSNMP_MEM_TYPE_MAX) {
+             if (netsnmp_ds_get_boolean(NETSNMP_DS_APPLICATION_ID,
+                     NETSNMP_DS_AGENT_REALSTORAGEUNITS))
+-                long_return = HRFS_entry->units & 0xffffffff;
++                long_return = HRFS_entry->units & 0x7fffffff;
+             else
+                 long_return = HRFS_entry->units_32;
+         } else {
+@@ -434,7 +434,7 @@ really_try_next:
+         if (store_idx > NETSNMP_MEM_TYPE_MAX) {
+             if (netsnmp_ds_get_boolean(NETSNMP_DS_APPLICATION_ID,
+                     NETSNMP_DS_AGENT_REALSTORAGEUNITS))
+-                long_return = HRFS_entry->size & 0xffffffff;
++                long_return = HRFS_entry->size & 0x7fffffff;
+             else
+                 long_return = HRFS_entry->size_32;
+         } else {
+@@ -447,7 +447,7 @@ really_try_next:
+         if (store_idx > NETSNMP_MEM_TYPE_MAX) {
+             if (netsnmp_ds_get_boolean(NETSNMP_DS_APPLICATION_ID,
+                     NETSNMP_DS_AGENT_REALSTORAGEUNITS))
+-                long_return = HRFS_entry->used & 0xffffffff;
++                long_return = HRFS_entry->used & 0x7fffffff;
+             else
+                 long_return = HRFS_entry->used_32;
+         } else {

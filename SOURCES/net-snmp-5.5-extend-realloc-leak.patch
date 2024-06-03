@@ -1,0 +1,43 @@
+978384 - possible memory leak while realocking extend.c:1364
+
+commit 55605ee3452aef5aabe4ed15a83374a97728e64a
+Author: Jan Safranek <jsafranek@users.sourceforge.net>
+Date:   Wed Jan 9 09:26:56 2013 +0100
+
+    Fixed memory leak on failed realloc.
+
+diff -up net-snmp-5.7.2/agent/mibgroup/agent/extend.c.orig net-snmp-5.7.2/agent/mibgroup/agent/extend.c
+--- net-snmp-5.7.2/agent/mibgroup/agent/extend.c.orig	2013-06-26 15:50:15.000000000 +0200
++++ net-snmp-5.7.2/agent/mibgroup/agent/extend.c	2013-06-26 15:55:09.839899740 +0200
+@@ -1457,17 +1457,26 @@ handle_nsExtendOutput2Table(netsnmp_mib_
+ char * _get_cmdline(netsnmp_extend *extend)
+ {
+     size_t          size;
++    char           *args = extend->args;
++    char           *newbuf;
++   
++    if (args == NULL)
++        /* Use empty string for processes without arguments. */
++        args = "";
+     
+     size = strlen(extend->command) + strlen(extend->args) + 2;
+     if (size > cmdlinesize) {
+-        cmdlinebuf = realloc(cmdlinebuf, size);
+-	if (!cmdlinebuf) {
++        newbuf = realloc(cmdlinebuf, size);
++	if (!newbuf) {
++            free(cmdlinebuf);
++            cmdlinebuf = NULL;
+             cmdlinesize = 0;
+             return NULL;
+-	}
+-	cmdlinesize = size;
++        }
++        cmdlinesize = size;
++        cmdlinebuf = newbuf;
+     }
+-    sprintf(cmdlinebuf, "%s %s", extend->command, extend->args);
++    sprintf(cmdlinebuf, "%s %s", extend->command, args);
+     return cmdlinebuf;
+ }
+ 

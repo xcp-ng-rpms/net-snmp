@@ -1,0 +1,23 @@
+1305933 - snmpd leaks memory in ether like-mib implementation
+
+commit ed4e48b5fab165d1ba4c431e31e543f808a2c25f
+Author: Jan Safranek <jsafranek@users.sourceforge.net>
+Date:   Wed Feb 10 14:00:12 2016 +0100
+
+    CHANGES: snmpd: fixed memory leak in ETHERLIKE-MIB.
+    
+    ke->name in stdup-ed at line 297:
+        n->name = strdup(RTA_DATA(tb[IFLA_IFNAME]));
+
+diff --git a/agent/mibgroup/etherlike-mib/data_access/dot3stats_linux.c b/agent/mibgroup/etherlike-mib/data_access/dot3stats_linux.c
+index b110950..a884bb3 100644
+--- a/agent/mibgroup/etherlike-mib/data_access/dot3stats_linux.c
++++ b/agent/mibgroup/etherlike-mib/data_access/dot3stats_linux.c
+@@ -463,6 +463,7 @@ _dot3Stats_netlink_get_errorcntrs(dot3StatsTable_rowreq_ctx *rowreq_ctx, const c
+             done = 1;
+         }
+         kern_db = ke->next;
++        free(ke->name);
+         free(ke);
+     }
+ 

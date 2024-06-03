@@ -1,0 +1,49 @@
+diff -up net-snmp-5.7.2/snmplib/snmp_api.c.original net-snmp-5.7.2/snmplib/snmp_api.c
+--- net-snmp-5.7.2/snmplib/snmp_api.c.original	2018-01-12 17:46:47.534166712 +0900
++++ net-snmp-5.7.2/snmplib/snmp_api.c	2018-01-12 17:48:09.420911255 +0900
+@@ -4974,6 +4974,9 @@ _sess_async_send(void *sessp,
+ 
+     reqid = pdu->reqid;
+ 
++    if (0 == reqid && (SNMPERR_SUCCESS == session->s_snmp_errno))
++        ++reqid;
++
+     /*
+      * Add to pending requests list if we expect a response.  
+      */
+diff -up net-snmp-5.7.2/snmplib/snmp_client.c.original net-snmp-5.7.2/snmplib/snmp_client.c
+--- net-snmp-5.7.2/snmplib/snmp_client.c.original	2018-01-12 17:48:21.814721234 +0900
++++ net-snmp-5.7.2/snmplib/snmp_client.c	2018-01-12 18:33:55.779642445 +0900
+@@ -1044,11 +1044,13 @@ snmp_synch_response_cb(netsnmp_session *
+     ss->callback = pcb;
+     ss->callback_magic = (void *) state;
+ 
+-    if ((state->reqid = snmp_send(ss, pdu)) == 0) {
++    if (snmp_send(ss, pdu) == 0) {
+         snmp_free_pdu(pdu);
+         state->status = STAT_ERROR;
+-    } else
++    } else {
++        state->reqid = pdu->reqid;
+         state->waiting = 1;
++    }
+ 
+     while (state->waiting) {
+         numfds = 0;
+@@ -1136,11 +1138,13 @@ snmp_sess_synch_response(void *sessp,
+     ss->callback = snmp_synch_input;
+     ss->callback_magic = (void *) state;
+ 
+-    if ((state->reqid = snmp_sess_send(sessp, pdu)) == 0) {
++    if (snmp_sess_send(sessp, pdu) == 0) {
+         snmp_free_pdu(pdu);
+         state->status = STAT_ERROR;
+-    } else
++    } else {
++	state->reqid = pdu->reqid;
+         state->waiting = 1;
++    }
+ 
+     while (state->waiting) {
+         numfds = 0;
+

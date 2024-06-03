@@ -1,0 +1,59 @@
+1100099 - net-snmp-python adds zeros to end of IP address (IPADDR type), which is not valid
+
+commit 1bc799de6cab010b25c0c4d3f5155b5fbaf527f0
+Author: Bart Van Assche <bvanassche@acm.org>
+Date:   Thu Feb 21 20:05:14 2013 +0100
+
+    Python bindings: Fix the out-of-bounds write
+    
+    See also commit 234158b8e84cc204cbac96e6e9be6959635404b8
+
+diff --git a/python/netsnmp/client_intf.c b/python/netsnmp/client_intf.c
+index 3eda804..d188e65 100644
+--- a/python/netsnmp/client_intf.c
++++ b/python/netsnmp/client_intf.c
+@@ -822,14 +822,18 @@ OCT:
+ 
+       case TYPE_IPADDR:
+         vars->type = ASN_IPADDRESS;
+-        vars->val.integer = (in_addr_t *)malloc(sizeof(in_addr_t));
+-        if (val)
+-            *(vars->val.integer) = inet_addr(val);
+-        else {
+-            ret = FAILURE;
+-            *(vars->val.integer) = 0;
++        {
++            in_addr_t addr;
++
++            if (val)
++                addr = inet_addr(val);
++            else {
++                ret = FAILURE;
++                addr = 0;
++            }
++            memdup(&vars->val.integer, &addr, sizeof(addr));
++            vars->val_len = sizeof(addr);
+         }
+-        vars->val_len = sizeof(in_addr_t);
+         break;
+ 
+       case TYPE_OBJID:
+commit d9789f2570452b54112443f3b8a32cf22a4ec783
+Author: Jan Safranek <jsafranek@users.sourceforge.net>
+Date:   Fri Feb 27 13:55:07 2015 +0100
+
+    Fixed compiler warning.
+
+diff --git a/python/netsnmp/client_intf.c b/python/netsnmp/client_intf.c
+index 7fc74dc..db5db75 100644
+--- a/python/netsnmp/client_intf.c
++++ b/python/netsnmp/client_intf.c
+@@ -833,7 +833,7 @@ OCT:
+                 ret = FAILURE;
+                 addr = 0;
+             }
+-            memdup(&vars->val.integer, &addr, sizeof(addr));
++            memdup((u_char**) &vars->val.integer, &addr, sizeof(addr));
+             vars->val_len = sizeof(addr);
+         }
+         break;

@@ -1,0 +1,16 @@
+969061 - net-snmpd crash on time out
+
+We need to bump soname because net-snmp-5.7.2-agentx-disconnect-crash.patch
+changes ABI (sizeof(netsnmp_agent_session)).
+diff -up net-snmp-5.7.2/Makefile.top.tst net-snmp-5.7.2/Makefile.top
+--- net-snmp-5.7.2/Makefile.top.tst	2013-07-12 13:54:36.646160556 +0200
++++ net-snmp-5.7.2/Makefile.top	2013-07-12 13:54:40.678146522 +0200
+@@ -79,7 +79,7 @@ LINKCC	        = @LINKCC@
+ # 5.3 was at 10, 5.4 is at 15, ...  This leaves some room for needed
+ # changes for past releases if absolutely necessary.
+ #
+-LIBCURRENT  = 30
++LIBCURRENT  = 31
+ LIBAGE      = 0
+ LIBREVISION = 2
+ 

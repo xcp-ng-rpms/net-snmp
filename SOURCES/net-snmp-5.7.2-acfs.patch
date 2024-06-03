@@ -1,0 +1,37 @@
+diff -urNp a/agent/mibgroup/hardware/fsys/fsys_mntent.c b/agent/mibgroup/hardware/fsys/fsys_mntent.c
+--- a/agent/mibgroup/hardware/fsys/fsys_mntent.c	2018-08-14 10:42:04.298706747 +0200
++++ b/agent/mibgroup/hardware/fsys/fsys_mntent.c	2018-08-14 10:42:27.177735016 +0200
+@@ -142,6 +142,7 @@ _fsys_type( char *typename )
+               !strcmp(typename, MNTTYPE_SIMFS) ||
+               !strcmp(typename, MNTTYPE_VZFS) ||
+               !strcmp(typename, MNTTYPE_BTRFS) ||
++              !strcmp(typename, MNTTYPE_ACFS) ||
+               !strcmp(typename, MNTTYPE_LOFS))
+        return NETSNMP_FS_TYPE_OTHER;
+ 
+diff -urNp a/agent/mibgroup/hardware/fsys/mnttypes.h b/agent/mibgroup/hardware/fsys/mnttypes.h
+--- a/agent/mibgroup/hardware/fsys/mnttypes.h	2018-08-14 10:42:04.298706747 +0200
++++ b/agent/mibgroup/hardware/fsys/mnttypes.h	2018-08-14 10:42:27.177735016 +0200
+@@ -151,6 +151,9 @@
+ #ifndef MNTTYPE_BTRFS
+ #define MNTTYPE_BTRFS    "btrfs"
+ #endif
++#ifndef MNTTYPE_ACFS
++#define MNTTYPE_ACFS  "acfs"
++#endif
+ 
+ /*
+  *  File systems to skip
+diff -urNp a/agent/mibgroup/hardware/fsys/mounts.h b/agent/mibgroup/hardware/fsys/mounts.h
+--- a/agent/mibgroup/hardware/fsys/mounts.h	2012-10-10 00:28:58.000000000 +0200
++++ b/agent/mibgroup/hardware/fsys/mounts.h	2018-08-14 10:44:30.798843141 +0200
+@@ -56,6 +56,9 @@
+ #ifndef MOUNT_UFS
+ #define MOUNT_UFS    "ufs"
+ #endif
++#ifndef MOUNT_ACFS
++#define MOUNT_ACFS   "acfs"
++#endif
+ 
+ /*
+ #ifndef MNTTYPE_AFS

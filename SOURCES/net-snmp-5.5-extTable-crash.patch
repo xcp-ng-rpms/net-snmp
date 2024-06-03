@@ -1,0 +1,14 @@
+diff -up net-snmp-5.7.2/agent/mibgroup/agent/extend.c.orig net-snmp-5.7.2/agent/mibgroup/agent/extend.c
+--- net-snmp-5.7.2/agent/mibgroup/agent/extend.c.orig	2013-07-09 17:12:14.169821974 +0200
++++ net-snmp-5.7.2/agent/mibgroup/agent/extend.c	2013-07-09 17:12:39.885729685 +0200
+@@ -1463,8 +1463,8 @@ char * _get_cmdline(netsnmp_extend *exte
+     if (args == NULL)
+         /* Use empty string for processes without arguments. */
+         args = "";
+-    
+-    size = strlen(extend->command) + strlen(extend->args) + 2;
++
++    size = strlen(extend->command) + strlen(args) + 2;
+     if (size > cmdlinesize) {
+         newbuf = realloc(cmdlinebuf, size);
+ 	if (!newbuf) {

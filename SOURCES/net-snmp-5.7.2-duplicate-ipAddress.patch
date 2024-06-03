@@ -1,0 +1,11 @@
+diff -urNp old/agent/mibgroup/ip-mib/data_access/ipaddress_common.c new/agent/mibgroup/ip-mib/data_access/ipaddress_common.c
+--- old/agent/mibgroup/ip-mib/data_access/ipaddress_common.c	2017-04-26 08:46:40.272404217 +0200
++++ new/agent/mibgroup/ip-mib/data_access/ipaddress_common.c	2017-04-26 08:50:30.681323779 +0200
+@@ -144,6 +144,7 @@ _remove_duplicates(netsnmp_container *co
+        for (entry = ITERATOR_FIRST(it); entry; entry = ITERATOR_NEXT(it)) {
+                if (prev_entry && _access_ipaddress_entry_compare_addr(prev_entry, entry) == 0) {
+                        /* 'entry' is duplicate of the previous one -> delete it */
++                       NETSNMP_LOGONCE((LOG_ERR, "Duplicate IPv4 address detected, some interfaces may not be visible in IP-MIB\n"));
+                        netsnmp_access_ipaddress_entry_free(entry);
+                } else {
+                        CONTAINER_INSERT(ret, entry);

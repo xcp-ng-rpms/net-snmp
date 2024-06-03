@@ -1,0 +1,29 @@
+851637 - snmpd loops inifinitely after receiving SIGTERM
+
+commit 9b15aa36d0fc40b46fe9461d56cf584bbf040691
+Author: Jan Safranek <jsafranek@users.sourceforge.net>
+Date:   Thu Sep 13 15:25:52 2012 +0200
+
+    CHANGES: snmpd: fixed infinite loop when SIGTEM arrives in middle of internal query processing.
+    
+    When snmpd starts internal query, e.g. for 'monitor' config options, it calls
+    netsnmp_query_walk(). This function loops until either error occurs or the
+    internal request is processed. And if SIGTERM comes to this loop, the request
+    is not marked as failed.
+    
+    Patch originally from Masahiro Matsuya, mmatsuya [at] redhat.com
+
+diff --git a/agent/snmp_agent.c b/agent/snmp_agent.c
+index 1c00a4c..b7761b0 100644
+--- a/agent/snmp_agent.c
++++ b/agent/snmp_agent.c
+@@ -3057,6 +3057,9 @@ handle_getnext_loop(netsnmp_agent_session *asp)
+             return status;      /* should never really happen */
+         }
+     }
++    if (!netsnmp_running) {
++        return SNMP_ERR_GENERR;
++    }
+     return SNMP_ERR_NOERROR;
+ }
+ 

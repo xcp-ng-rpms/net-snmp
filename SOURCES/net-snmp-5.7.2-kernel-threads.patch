@@ -1,0 +1,41 @@
+979329 - hrSWRunTable does not show kernel threads
+
+commit c655fce784532a523f7db582d0cd07dee4ad7ac5
+Author: Niels Baggesen <nba@users.sourceforge.net>
+Date:   Mon Oct 22 16:25:59 2012 +0200
+
+    Try to better classify Linux kernel threads as hrSWRunType=Os
+
+diff --git a/agent/mibgroup/host/data_access/swrun_procfs_status.c b/agent/mibgroup/host/data_access/swrun_procfs_status.c
+index 80182d0..61c5e3a 100644
+--- a/agent/mibgroup/host/data_access/swrun_procfs_status.c
++++ b/agent/mibgroup/host/data_access/swrun_procfs_status.c
+@@ -122,11 +122,11 @@ netsnmp_arch_swrun_container_load( netsnmp_container *container, u_int flags)
+             continue; /* file (process) probably went away */
+ 	}
+         memset(buf, 0, sizeof(buf));
+-        if ((cp = fgets( buf, BUFSIZ-1, fp )) == NULL) {
+-            fclose(fp);
+-            netsnmp_swrun_entry_free(entry);
+-            continue;
+-        }
++	entry->hrSWRunType = HRSWRUNTYPE_APPLICATION;
++	if ((cp = fgets( buf, sizeof(buf)-1, fp )) == NULL) {
++	    entry->hrSWRunType = HRSWRUNTYPE_OPERATINGSYSTEM;
++	    buf[0] = '\0';
++	}
+         fclose(fp);
+ 
+         /*
+@@ -151,11 +151,6 @@ netsnmp_arch_swrun_container_load( netsnmp_container *container, u_int flags)
+                       buf + entry->hrSWRunPath_len + 1);
+  
+         /*
+-         * XXX - No information regarding system processes vs applications
+-         */
+-        entry->hrSWRunType = HRSWRUNTYPE_APPLICATION;
+-
+-        /*
+          *   {xxx} {xxx} STATUS  {xxx}*10  UTIME STIME  {xxx}*8 RSS
+          */
+         snprintf( buf, BUFSIZ, "/proc/%d/stat", pid );

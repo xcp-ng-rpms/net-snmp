@@ -1,0 +1,112 @@
+diff -urpN old/snmplib/snmp_api.c new/snmplib/snmp_api.c
+--- old/snmplib/snmp_api.c	2017-04-03 09:07:41.795091238 +0200
++++ new/snmplib/snmp_api.c	2017-04-03 10:54:47.809422106 +0200
+@@ -1553,12 +1553,12 @@ _sess_open(netsnmp_session * in_session)
+         if (in_session->flags & SNMP_FLAGS_STREAM_SOCKET) {
+             transport =
+                 netsnmp_tdomain_transport_full("snmp", in_session->peername,
+-                                               in_session->local_port, "tcp",
++                                               in_session->local_port, "tcp,tcp6",
+                                                NULL);
+         } else {
+             transport =
+                 netsnmp_tdomain_transport_full("snmp", in_session->peername,
+-                                               in_session->local_port, "udp",
++                                               in_session->local_port, "udp,udp6",
+                                                NULL);
+         }
+ 
+diff -urpN old/snmplib/snmp_transport.c new/snmplib/snmp_transport.c
+--- old/snmplib/snmp_transport.c	2012-10-10 00:28:58.000000000 +0200
++++ new/snmplib/snmp_transport.c	2017-04-03 11:50:49.158878706 +0200
+@@ -498,6 +498,9 @@ netsnmp_tdomain_transport_full(const cha
+     const char * const *spec = NULL;
+     int                 any_found = 0;
+     char buf[SNMP_MAXPATH];
++    char **lspec = 0;
++    char *tokenized_domain = 0;
++
+ 
+     DEBUGMSGTL(("tdomain",
+                 "tdomain_transport_full(\"%s\", \"%s\", %d, \"%s\", \"%s\")\n",
+@@ -587,7 +590,23 @@ netsnmp_tdomain_transport_full(const cha
+             DEBUGMSGTL(("tdomain",
+                         "Use user specified default domain \"%s\"\n",
+                         default_domain));
+-            match = find_tdomain(default_domain);
++            if (!strchr(default_domain, ','))
++                match = find_tdomain(default_domain);
++            else {
++                int commas = 0;
++                const char *cp = default_domain;
++                char *ptr = NULL;
++                tokenized_domain = strdup(default_domain);
++
++                while (*++cp) if (*cp == ',') commas++;
++                lspec = calloc(commas+2, sizeof(char *));
++                commas = 1;
++                lspec[0] = strtok_r(tokenized_domain, ",", &ptr);
++                while ((lspec[commas++] = strtok_r(NULL, ",", &ptr)))
++                    ;
++                spec = (const char * const *)lspec;
++            }
++
+         } else {
+             spec = netsnmp_lookup_default_domains(application);
+             if (spec == NULL) {
+@@ -636,6 +655,10 @@ netsnmp_tdomain_transport_full(const cha
+             else
+                 t = match->f_create_from_tstring_new(addr, local, addr2);
+             if (t) {
++                if (lspec) {
++                    free(tokenized_domain);
++                    free(lspec);
++                }
+                 return t;
+             }
+         }
+@@ -647,6 +670,10 @@ netsnmp_tdomain_transport_full(const cha
+     }
+     if (!any_found)
+         snmp_log(LOG_ERR, "No support for any checked transport domain\n");
++    if (lspec) {
++        free(tokenized_domain);
++        free(lspec);
++    }
+     return NULL;
+ }
+ 
+diff -urpN old/snmplib/system.c new/snmplib/system.c
+--- old/snmplib/system.c	2012-10-10 00:28:58.000000000 +0200
++++ new/snmplib/system.c	2017-04-03 12:02:35.693153449 +0200
+@@ -750,13 +750,6 @@ netsnmp_gethostbyname_v4(const char* nam
+ 
+     err = netsnmp_getaddrinfo(name, NULL, &hint, &addrs);
+     if (err != 0) {
+-#if HAVE_GAI_STRERROR
+-        snmp_log(LOG_ERR, "getaddrinfo: %s %s\n", name,
+-                 gai_strerror(err));
+-#else
+-        snmp_log(LOG_ERR, "getaddrinfo: %s (error %d)\n", name,
+-                 err);
+-#endif
+         return -1;
+     }
+ 
+diff -urpN old/snmplib/transports/snmpIPv6BaseDomain.c new/snmplib/transports/snmpIPv6BaseDomain.c
+--- old/snmplib/transports/snmpIPv6BaseDomain.c	2012-10-10 00:28:58.000000000 +0200
++++ new/snmplib/transports/snmpIPv6BaseDomain.c	2017-04-03 12:00:38.669641503 +0200
+@@ -342,13 +342,6 @@ netsnmp_sockaddr_in6_2(struct sockaddr_i
+             err = netsnmp_getaddrinfo(peername, NULL, &hint, &addrs);
+         }
+         if (err != 0) {
+-#if HAVE_GAI_STRERROR
+-            snmp_log(LOG_ERR, "getaddrinfo(\"%s\", NULL, ...): %s\n", peername,
+-                     gai_strerror(err));
+-#else
+-            snmp_log(LOG_ERR, "getaddrinfo(\"%s\", NULL, ...): (error %d)\n",
+-                     peername, err);
+-#endif
+             free(peername);
+             return 0;
+         }

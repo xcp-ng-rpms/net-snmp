@@ -1,0 +1,30 @@
+915302 - snmpd logging strange messages when reading MIB
+
+commit ecf8682d864d2f08525078543858d361b3adca5c
+Author: Jan Safranek <jsafranek@users.sourceforge.net>
+Date:   Wed Jul 10 10:47:33 2013 +0200
+
+    Lower importance of debugging messages, they spam syslog.
+
+diff --git a/agent/mibgroup/etherlike-mib/data_access/dot3stats_linux.c b/agent/mibgroup/etherlike-mib/data_access/dot3stats_linux.c
+index 49c3fdb..b110950 100644
+--- a/agent/mibgroup/etherlike-mib/data_access/dot3stats_linux.c
++++ b/agent/mibgroup/etherlike-mib/data_access/dot3stats_linux.c
+@@ -440,7 +440,7 @@ _dot3Stats_netlink_get_errorcntrs(dot3StatsTable_rowreq_ctx *rowreq_ctx, const c
+         {
+             dot3StatsTable_data *data = &rowreq_ctx->data;
+ 
+-            snmp_log(LOG_ERR, "IFLA_STATS for %s\n", name);
++            DEBUGMSGTL(("access:dot3StatsTable", "IFLA_STATS for %s\n", name));
+ 
+             data->dot3StatsFCSErrors = ke->stats.rx_crc_errors;
+             rowreq_ctx->column_exists_flags |= COLUMN_DOT3STATSFCSERRORS_FLAG;
+@@ -527,7 +527,7 @@ interface_dot3stats_get_errorcounters (dot3StatsTable_rowreq_ctx *rowreq_ctx, co
+ 
+     if (_dot3Stats_netlink_get_errorcntrs(rowreq_ctx, name) == 0)
+     {
+-        snmp_log(LOG_NOTICE, "interface_dot3stats_get_errorcounters: got data from IFLA_STATS\n");
++        DEBUGMSGTL(("access:dot3StatsTable", "interface_dot3stats_get_errorcounters: got data from IFLA_STATS\n"));
+         return;
+     }
+ 

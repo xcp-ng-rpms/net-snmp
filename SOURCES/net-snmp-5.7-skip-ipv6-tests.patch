@@ -1,0 +1,38 @@
+657835: IPv6 tests fail instead of being skipped
+
+Detect ipv6 before testing ipv6 transports.
+
+diff -up net-snmp-5.7.2.pre2/testing/fulltests/transports/T320udpv6_simple.rhel net-snmp-5.7.2.pre2/testing/fulltests/transports/T320udpv6_simple
+--- net-snmp-5.7.2.pre2/testing/fulltests/transports/T320udpv6_simple.rhel	2012-07-12 04:23:25.000000000 +0200
++++ net-snmp-5.7.2.pre2/testing/fulltests/transports/T320udpv6_simple	2012-07-31 11:10:22.668307328 +0200
+@@ -6,6 +6,13 @@ HEADER UDP6 Transport
+ 
+ SKIPIFNOT NETSNMP_TRANSPORT_UDPIPV6_DOMAIN
+ 
++# primitive detection of ipv6
++if test `uname -s` == "Linux" ; then
++    if test ! -e /proc/net/if_inet6; then
++        SKIP
++    fi
++fi
++
+ #
+ # Begin test
+ #
+diff -up net-snmp-5.7.2.pre2/testing/fulltests/transports/T330tcpv6_simple.rhel net-snmp-5.7.2.pre2/testing/fulltests/transports/T330tcpv6_simple
+--- net-snmp-5.7.2.pre2/testing/fulltests/transports/T330tcpv6_simple.rhel	2012-07-12 04:23:25.000000000 +0200
++++ net-snmp-5.7.2.pre2/testing/fulltests/transports/T330tcpv6_simple	2012-07-31 11:10:07.756378344 +0200
+@@ -6,6 +6,13 @@ HEADER TCP6 Transport
+ 
+ SKIPIFNOT NETSNMP_TRANSPORT_TCPIPV6_DOMAIN
+ 
++# primitive detection of ipv6
++if test `uname -s` == "Linux" ; then
++    if test ! -e /proc/net/if_inet6; then
++        SKIP
++    fi
++fi
++
+ #
+ # Begin test
+ #

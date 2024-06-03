@@ -1,0 +1,181 @@
+Bug 1252048 - net-snmp snmpd fork() overhead [fix available]
+
+Backported from:
+
+commit f0e87f4918ffc41e03f707e9670ea422cd154a9b
+Author: Bart Van Assche <bvanassche@acm.org>
+Date:   Sat Jan 31 12:05:24 2015 +0100
+
+    CHANGES: snmpd: BUG: 2596: Reduce fork() overhead
+
+    Avoid that the close() loop that is executed after a fork() delays
+    the pass/extend API on systems with a large maximum number of files
+    by reducing the number of iterations of this loop on Linux systems.
+
+    See also http://sourceforge.net/p/net-snmp/bugs/2596.
+
+    Reported-by: andymf <andymf@users.sf.net>
+
+
+diff -up net-snmp-5.7.2/agent/mibgroup/util_funcs.c.test net-snmp-5.7.2/agent/mibgroup/util_funcs.c
+--- net-snmp-5.7.2/agent/mibgroup/util_funcs.c.test	2012-10-10 00:28:58.000000000 +0200
++++ net-snmp-5.7.2/agent/mibgroup/util_funcs.c	2015-08-18 10:15:18.888767023 +0200
+@@ -480,8 +480,7 @@ get_exec_pipes(char *cmd, int *fdIn, int
+         /*
+          * close all non-standard open file descriptors 
+          */
+-        for (cnt = getdtablesize() - 1; cnt >= 2; --cnt)
+-            (void) close(cnt);
++        netsnmp_close_fds(1);
+         (void) dup(1);          /* stderr */
+ 
+         for (cnt = 1, cptr1 = cmd, cptr2 = argvs; *cptr1 != 0;
+diff -up net-snmp-5.7.2/agent/mibgroup/utilities/execute.c.test net-snmp-5.7.2/agent/mibgroup/utilities/execute.c
+--- net-snmp-5.7.2/agent/mibgroup/utilities/execute.c.test	2012-10-10 00:28:58.000000000 +0200
++++ net-snmp-5.7.2/agent/mibgroup/utilities/execute.c	2015-08-18 10:15:18.889767028 +0200
+@@ -22,6 +22,9 @@
+ #if HAVE_FCNTL_H
+ #include <fcntl.h>
+ #endif
++#if HAVE_DIRENT_H
++#include <dirent.h>
++#endif
+ #if HAVE_SYS_WAIT_H
+ #include <sys/wait.h>
+ #endif
+@@ -207,8 +210,8 @@ run_exec_command( char *command, char *i
+         close(opipe[0]);
+         close(2);
+         dup(1);
+-        for (i = getdtablesize()-1; i>2; i--)
+-            close(i);
++
++        netsnmp_close_fds(2);
+ 
+         /*
+          * Set up the argv array and execute it
+@@ -406,3 +409,30 @@ run_exec_command( char *command, char *i
+     return run_shell_command( command, input, output, out_len );
+ #endif
+ }
++
++/**
++ * Close all file descriptors larger than @fd.
++ */
++void netsnmp_close_fds(int fd)
++{
++#if defined(HAVE_FORK)
++    DIR            *dir;
++    struct dirent  *ent;
++    int             i, largest_fd = -1;
++
++    if ((dir = opendir("/proc/self/fd"))) {
++        while ((ent = readdir(dir))) {
++            if (sscanf(ent->d_name, "%d", &i) == 1) {
++                if (i > largest_fd)
++                    largest_fd = i;
++            }
++        }
++        closedir(dir);
++    } else {
++        largest_fd = getdtablesize() - 1;
++    }
++
++    for (i = largest_fd; i > fd && i > 0; i--)
++        close(i);
++#endif
++}
+diff -up net-snmp-5.7.2/agent/mibgroup/utilities/execute.h.test net-snmp-5.7.2/agent/mibgroup/utilities/execute.h
+--- net-snmp-5.7.2/agent/mibgroup/utilities/execute.h.test	2012-10-10 00:28:58.000000000 +0200
++++ net-snmp-5.7.2/agent/mibgroup/utilities/execute.h	2015-08-18 10:15:18.889767028 +0200
+@@ -3,6 +3,7 @@
+ 
+ config_belongs_in(agent_module)
+ 
++void netsnmp_close_fds(int fd);
+ int run_shell_command(char *command, char *input,
+                       char *output,  int  *out_len);
+ int run_exec_command( char *command, char *input,
+diff -up net-snmp-5.7.2/agent/snmpd.c.test net-snmp-5.7.2/agent/snmpd.c
+--- net-snmp-5.7.2/agent/snmpd.c.test	2015-08-18 10:15:08.450714809 +0200
++++ net-snmp-5.7.2/agent/snmpd.c	2015-08-18 10:17:31.579430763 +0200
+@@ -143,6 +143,7 @@ typedef long    fd_mask;
+ #include <net-snmp/agent/agent_module_config.h>
+ #include <net-snmp/agent/mib_module_config.h>
+ 
++#include "utilities/execute.h" /* netsnmp_close_fds() */
+ #include "snmpd.h"
+ 
+ #include <net-snmp/agent/mib_modules.h>
+@@ -451,7 +452,6 @@ main(int argc, char *argv[])
+     FILE           *PID;
+ #endif
+ 
+-#ifndef WIN32
+ #ifndef NETSNMP_NO_SYSYSTEMD
+     /* check if systemd has sockets for us and don't close them */
+     prepared_sockets = netsnmp_sd_listen_fds(0);
+@@ -462,11 +462,8 @@ main(int argc, char *argv[])
+      * inherited from the shell.
+      */
+     if (!prepared_sockets) {
+-        for (i = getdtablesize() - 1; i > 2; --i) {
+-            (void) close(i);
+-        }
++        netsnmp_close_fds(2);
+     }
+-#endif /* #WIN32 */
+     
+     /*
+      * register signals ASAP to prevent default action (usually core)
+diff -up net-snmp-5.7.2/apps/snmptrapd.c.test net-snmp-5.7.2/apps/snmptrapd.c
+--- net-snmp-5.7.2/apps/snmptrapd.c.test	2015-08-18 10:15:08.450714809 +0200
++++ net-snmp-5.7.2/apps/snmptrapd.c	2015-08-18 10:18:15.454650235 +0200
+@@ -97,6 +97,7 @@ SOFTWARE.
+ #include <net-snmp/net-snmp-includes.h>
+ #include <net-snmp/agent/net-snmp-agent-includes.h>
+ #include <net-snmp/library/fd_event_manager.h>
++#include "utilities/execute.h" /* netsnmp_close_fds() */
+ #include "snmptrapd_handlers.h"
+ #include "snmptrapd_log.h"
+ #include "snmptrapd_auth.h"
+@@ -662,7 +663,6 @@ main(int argc, char *argv[])
+     int             prepared_sockets = 0;
+ 
+ 
+-#ifndef WIN32
+ #ifndef NETSNMP_NO_SYSTEMD
+     /* check if systemd has sockets for us and don't close them */
+     prepared_sockets = netsnmp_sd_listen_fds(0);
+@@ -672,11 +672,8 @@ main(int argc, char *argv[])
+      * inherited from the shell.
+      */
+     if (!prepared_sockets) {
+-        for (i = getdtablesize() - 1; i > 2; --i) {
+-            (void) close(i);
+-        }
++        netsnmp_close_fds(2);
+     }
+-#endif /* #WIN32 */
+     
+ #ifdef SIGTERM
+     signal(SIGTERM, term_handler);
+@@ -1382,18 +1379,6 @@ trapd_update_config(void)
+     read_configs();
+ }
+ 
+-
+-#if !defined(HAVE_GETDTABLESIZE) && !defined(WIN32)
+-#include <sys/resource.h>
+-int
+-getdtablesize(void)
+-{
+-    struct rlimit   rl;
+-    getrlimit(RLIMIT_NOFILE, &rl);
+-    return (rl.rlim_cur);
+-}
+-#endif
+-
+ /*
+  * Windows Service Related functions 
+  */

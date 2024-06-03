@@ -1,0 +1,35 @@
+--- net-snmp-5.7.3/man/net-snmp-create-v3-user.1.def	2014-12-08 21:23:22.000000000 +0100
++++ /tmp/net-snmp-create-v3-user.1.def	2018-01-23 10:22:29.096506633 +0100
+@@ -3,7 +3,7 @@
+ net-snmp-create-v3-user \- create a SNMPv3 user in net-snmp configuration file
+ .SH SYNOPSIS
+ .PP
+-.B net-snmp-create-v3-user [-ro] [-a authpass] [-x privpass] [-X DES|AES]
++.B net-snmp-create-v3-user [-ro] [-A authpass] [-a MD5|SHA] [-X privpass] [-x DES|AES]
+ .B [username]
+ .SH DESCRIPTION
+ .PP
+@@ -16,13 +16,16 @@
+ displays the net-snmp version number
+ .TP
+ \fB\-ro\fR
+-create an user with read-only permissions
++creates a user with read-only permissions
+ .TP
+-\fB\-a authpass\fR
+-specify authentication password
++\fB\-A authpass\fR
++specifies the authentication password
+ .TP
+-\fB\-x privpass\fR
+-specify encryption password
++\fB\-a MD5|SHA\fR
++specifies the authentication password hashing algorithm
+ .TP
+-\fB\-X DES|AES\fR
+-specify encryption algorithm
++\fB\-X privpass\fR
++specifies the encryption password
++.TP
++\fB\-x DES|AES\fR
++specifies the encryption algorithm

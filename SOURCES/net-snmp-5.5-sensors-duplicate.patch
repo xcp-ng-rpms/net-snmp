@@ -1,0 +1,56 @@
+Bug 967871 - net-snmp does not display correct lm_sensors sensor data / missing CPU cores
+
+commit e886f5eb9701851ad6948583156bfd59fcb6110f
+Author: Jan Safranek <jsafranek@users.sourceforge.net>
+Date:   Wed Feb 25 09:30:24 2015 +0100
+
+    CHANGES: snmpd: fixed lm_sensors not reporting sensors with duplicate names.
+    
+    Some systems report two or more sensors with the same name.
+    This patch adds support for reporting of all these duplicate
+    sensor names.
+    
+    Before the patch, these sensors were reported:
+    > lmTempSensorsDevice.2 = STRING: Core 0
+    
+    After the patch, new sensors appear with a prefix:
+    > lmTempSensorsDevice.2 = STRING: Core 0
+    > lmTempSensorsDevice.6 = STRING: coretemp-isa-0004:Core 0
+    
+    This approach keeps backward compatibility (applications used to 'Core 0'
+    will keep workig, while it adds new sensorscto the table (with a prefix).
+
+diff --git a/agent/mibgroup/hardware/sensors/lmsensors_v3.c b/agent/mibgroup/hardware/sensors/lmsensors_v3.c
+index 60af9e6..1de7c68 100644
+--- a/agent/mibgroup/hardware/sensors/lmsensors_v3.c
++++ b/agent/mibgroup/hardware/sensors/lmsensors_v3.c
+@@ -86,7 +86,28 @@ netsnmp_sensor_arch_load(netsnmp_cache *cache, void *vp) {
+                  *  (inserting it in the appropriate sub-containers)
+                  */
+                 sp = sensor_by_name( label, type );
+-                if ( sp ) {
++                if ( sp && sp->flags & NETSNMP_SENSOR_FLAG_ACTIVE) {
++                    /*
++                     * Some HW does not have unique sensors labels.
++                     * We already have a sensor with this label, thus
++                     * try to create unique label by adding chip-name prefix
++                     * and try again.
++                     */
++                    char chip_name[64];
++                    char new_label[128];
++                    int ret;
++                    DEBUGMSGTL(("sensors:arch:detail", "Already know label %s, adding prefix\n", label));
++                    ret = sensors_snprintf_chip_name(chip_name, sizeof(chip_name), chip);
++                    if (ret < 0) {
++                        DEBUGMSGTL(("sensors:arch:detail", "Can't get chip name for label %s\n", label));
++                        free(label);
++                        continue;
++                    }
++                    snprintf(new_label, sizeof(new_label), "%s:%s", chip_name, label);
++                    DEBUGMSGTL(("sensors:arch:detail", "New label: %s\n", new_label));
++                    sp = sensor_by_name( new_label, type );
++                }
++                if (sp) {
+                     sp->value = val;
+                     sp->flags|= NETSNMP_SENSOR_FLAG_ACTIVE;
+                 }

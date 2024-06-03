@@ -1,0 +1,28 @@
+877326 - dskEntry should be cached
+
+commit ca7b17a41d4d16bd27aacf92116bea3562eeea36
+Author: Jan Safranek <jsafranek@users.sourceforge.net>
+Date:   Mon Dec 17 12:40:32 2012 +0100
+
+    CHANGES: snmpd: use cache for dskTable to speed it up.
+    
+    UCD-SNMP::dskTable was slow on NFS mounts. Now it uses fsys cache
+    to reload mounts every 5 seconds.
+
+diff --git a/agent/mibgroup/ucd-snmp/disk_hw.c b/agent/mibgroup/ucd-snmp/disk_hw.c
+index 93ecde3..ea37610 100644
+--- a/agent/mibgroup/ucd-snmp/disk_hw.c
++++ b/agent/mibgroup/ucd-snmp/disk_hw.c
+@@ -305,8 +305,11 @@ var_extensible_disk(struct variable *vp,
+     unsigned long long val;
+     static long     long_ret;
+     static char     errmsg[300];
++    netsnmp_cache  *cache;
+ 
+-    netsnmp_fsys_load( NULL, NULL );  /* Update the fsys H/W module */
++    /* Update the fsys H/W module */
++    cache = netsnmp_fsys_get_cache();
++    netsnmp_cache_check_and_reload(cache);
+ 
+ tryAgain:
+     if (header_simple_table

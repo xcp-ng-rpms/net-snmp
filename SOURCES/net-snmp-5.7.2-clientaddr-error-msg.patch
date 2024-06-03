@@ -1,0 +1,21 @@
+1086925 - snmpd does not report error when clientaddr <ip>:<port> cannot bind to the specified port
+
+commit 68d2c8fd4bf2390612f288ff488b7c08102bcd0a
+Author: Jan Safranek <jsafranek@users.sourceforge.net>
+Date:   Wed Jan 14 11:52:05 2015 +0100
+
+    Added error message when bind for clientaddr fails.
+
+diff --git a/snmplib/transports/snmpUDPIPv4BaseDomain.c b/snmplib/transports/snmpUDPIPv4BaseDomain.c
+index fa39e4b..b8b6683 100644
+--- a/snmplib/transports/snmpUDPIPv4BaseDomain.c
++++ b/snmplib/transports/snmpUDPIPv4BaseDomain.c
+@@ -221,6 +221,8 @@ netsnmp_udpipv4base_transport(struct sockaddr_in *addr, int local)
+             if ( rc != 0 ) {
+                 DEBUGMSGTL(("netsnmp_udpbase", "failed to bind for clientaddr: %d %s\n",
+                             errno, strerror(errno)));
++                snmp_log(LOG_ERR, "Cannot bind for clientaddr: %s\n",
++                            strerror(errno));
+                 netsnmp_socketbase_close(t);
+                 netsnmp_transport_free(t);
+                 return NULL;

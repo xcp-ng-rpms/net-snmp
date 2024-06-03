@@ -1,0 +1,12 @@
+diff -urNp O/apps/Makefile.in N/apps/Makefile.in
+--- O/apps/Makefile.in	2019-03-18 12:36:59.016177653 +0100
++++ N/apps/Makefile.in	2019-03-18 12:38:55.731913867 +0100
+@@ -204,7 +204,7 @@ snmpdf$(EXEEXT):    snmpdf.$(OSUFFIX) $(
+ 	$(LINK) ${CFLAGS} -o $@ snmpdf.$(OSUFFIX) ${LDFLAGS} ${LIBS}
+ 
+ libnetsnmptrapd.$(LIB_EXTENSION)$(LIB_VERSION): $(LLIBTRAPD_OBJS)
+-	$(LIB_LD_CMD) $@ ${LLIBTRAPD_OBJS} $(MIBLIB) $(USELIBS) $(PERLLDOPTS_FOR_LIBS) $(LIB_LD_LIBS) ${LDFLAGS}
++	$(LIB_LD_CMD) $@ ${LLIBTRAPD_OBJS} $(MIBLIB) $(USELIBS) $(PERLLDOPTS_FOR_LIBS) $(LIB_LD_LIBS) $(MYSQL_LIBS) ${LDFLAGS}
+ 	$(RANLIB) $@
+ 
+ snmpinforminstall:

@@ -1,0 +1,86 @@
+diff -urNp a/agent/snmp_agent.c b/agent/snmp_agent.c
+--- a/agent/snmp_agent.c	2020-04-23 08:22:11.654986675 +0200
++++ b/agent/snmp_agent.c	2020-04-23 08:24:04.245200730 +0200
+@@ -1429,12 +1429,6 @@ free_agent_snmp_session(netsnmp_agent_se
+     DEBUGMSGTL(("verbose:asp", "asp %p reqinfo %p freed\n",
+                 asp, asp->reqinfo));
+ 
+-    /* Clean up securityStateRef here to prevent a double free */
+-    if (asp->orig_pdu && asp->orig_pdu->securityStateRef)
+-	snmp_free_securityStateRef(asp->orig_pdu);
+-    if (asp->pdu && asp->pdu->securityStateRef)
+-	snmp_free_securityStateRef(asp->pdu);
+-
+     if (asp->orig_pdu)
+         snmp_free_pdu(asp->orig_pdu);
+     if (asp->pdu)
+diff -urNp a/include/net-snmp/pdu_api.h b/include/net-snmp/pdu_api.h
+--- a/include/net-snmp/pdu_api.h	2020-04-23 08:22:11.704987213 +0200
++++ b/include/net-snmp/pdu_api.h	2020-04-23 08:24:18.876358902 +0200
+@@ -19,8 +19,6 @@ NETSNMP_IMPORT
+ netsnmp_pdu    *snmp_fix_pdu(  netsnmp_pdu *pdu, int idx);
+ NETSNMP_IMPORT
+ void            snmp_free_pdu( netsnmp_pdu *pdu);
+-NETSNMP_IMPORT
+-void            snmp_free_securityStateRef( netsnmp_pdu *pdu);
+ 
+ #ifdef __cplusplus
+ }
+diff -urNp a/snmplib/snmp_api.c b/snmplib/snmp_api.c
+--- a/snmplib/snmp_api.c	2020-04-23 08:22:11.718987363 +0200
++++ b/snmplib/snmp_api.c	2020-04-23 08:31:12.410812524 +0200
+@@ -3862,17 +3862,6 @@ free_securityStateRef(netsnmp_pdu* pdu)
+     pdu->securityStateRef = NULL;
+ }
+ 
+-/*
+- * This function is here to provide a separate call to
+- * free the securityStateRef memory. This is needed to prevent
+- * a double free if this memory is freed in snmp_free_pdu.
+- */
+-void
+-snmp_free_securityStateRef(netsnmp_pdu* pdu)
+-{
+-   free_securityStateRef(pdu);
+-}
+-
+ #define ERROR_STAT_LENGTH 11
+ 
+ int
+@@ -5137,6 +5126,8 @@ snmp_free_pdu(netsnmp_pdu *pdu)
+     if (!pdu)
+         return;
+ 
++    free_securityStateRef(pdu);
++
+     /*
+      * If the command field is empty, that probably indicates
+      *   that this PDU structure has already been freed.
+@@ -5278,12 +5269,6 @@ _sess_process_packet(void *sessp, netsnm
+   }
+ 
+   if (ret != SNMP_ERR_NOERROR) {
+-    /*
+-     * Call the security model to free any securityStateRef supplied w/ msg.  
+-     */
+-    if (pdu->securityStateRef != NULL) {
+-      free_securityStateRef(pdu);
+-    }
+     snmp_free_pdu(pdu);
+     return -1;
+   }
+@@ -5441,14 +5426,6 @@ _sess_process_packet(void *sessp, netsnm
+     }
+   }
+ 
+-  /*
+-   * Call USM to free any securityStateRef supplied with the message.  
+-   */
+-  if (pdu != NULL && pdu->securityStateRef &&
+-      pdu->command == SNMP_MSG_TRAP2) {
+-    free_securityStateRef(pdu);
+-  }
+-
+   if (!handled) {
+     snmp_increment_statistic(STAT_SNMPUNKNOWNPDUHANDLERS);
+     DEBUGMSGTL(("sess_process_packet", "unhandled PDU\n"));

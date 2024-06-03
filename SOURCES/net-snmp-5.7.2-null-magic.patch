@@ -1,0 +1,23 @@
+diff -urNp e/snmplib/snmp_api.c f/snmplib/snmp_api.c
+--- e/snmplib/snmp_api.c	2019-04-17 15:16:22.664807192 +0200
++++ f/snmplib/snmp_api.c	2019-04-17 15:18:09.162767964 +0200
+@@ -5362,13 +5362,17 @@ _sess_process_packet(void *sessp, netsnm
+ 	      break;
+ 	    } else {
+ 	      /* We're done with retries, so no longer waiting for a response */
+-	      ((struct synch_state*)magic)->waiting = 0;
++	      if (magic) {
++	       ((struct synch_state*)magic)->waiting = 0;
++	      }
+ 	    }
+ 	  } else {
+ 	    if (SNMPV3_IGNORE_UNAUTH_REPORTS) {
+ 	      break;
+ 	    } else { /* Set the state to no longer be waiting, since we're done with retries */
+-	      ((struct synch_state*)magic)->waiting = 0;
++	      if (magic) {
++	       ((struct synch_state*)magic)->waiting = 0;
++	      }
+ 	    }
+ 	  }
+ 
