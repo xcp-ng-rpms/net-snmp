@@ -9,7 +9,7 @@
 Summary: A collection of SNMP protocol tools and libraries
 Name: net-snmp
 Version: 5.7.2
-Release: %{?xsrel}%{?dist}
+Release: %{?xsrel}.1%{?dist}
 Epoch: 1
 License: BSD
 Group: System Environment/Daemons
@@ -519,6 +519,10 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Mon Jun 03 2024 Samuel Verschelde <stormi-xcp@ylix.fr> - 5.7.2-51.1
+- Rebase on XS8's 5.7.2-51
+- Undo most changes from snmp.xs.conf, which are related to a proprietary implementation
+
 * Wed Oct 25 2023 Deli Zhang <deli.zhang@cloud.com> - 5.7.2-51
 - CP-44170: Update default settings
 - CP-44169: Add XenServer SNMP Agent so
