@@ -6,6 +6,9 @@ After=syslog.target network-online.target
 Type=notify
 Environment=OPTIONS="-LS0-6d"
 EnvironmentFile=-/etc/sysconfig/snmpd
+CPUQuota=10%
+MemoryLimit=100M
+Restart=on-failure
 ExecStart=/usr/sbin/snmpd $OPTIONS -f
 ExecReload=/bin/kill -HUP $MAINPID
 
