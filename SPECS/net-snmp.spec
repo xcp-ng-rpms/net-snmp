@@ -130,6 +130,7 @@ Requires: %{name}-libs = %{epoch}:%{version}-%{release}
 Requires: %{name}-agent-libs = %{epoch}:%{version}-%{release}
 Requires: mysql-libs
 
+BuildRequires: gcc
 BuildRequires: openssl-devel, bzip2-devel, elfutils-devel
 BuildRequires: libselinux-devel, elfutils-libelf-devel, rpm-devel
 BuildRequires: perl-devel, perl(ExtUtils::Embed), gawk, procps
