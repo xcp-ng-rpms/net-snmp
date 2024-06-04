@@ -1,0 +1,46 @@
+diff -up net-snmp-5.7.2/configure.d/config_os_libs2.orig net-snmp-5.7.2/configure.d/config_os_libs2
+--- net-snmp-5.7.2/configure.d/config_os_libs2.orig	2019-11-20 14:04:21.531094867 +0100
++++ net-snmp-5.7.2/configure.d/config_os_libs2	2019-11-20 14:05:06.967796642 +0100
+@@ -317,12 +317,12 @@ elif test "x$askedpkcs" = "xyes"; then
+ fi
+ if test "x$TLSPROG" = "xyes"; then
+    AC_CHECK_DECL([EVP_sha224],
+-    : ,
+     AC_DEFINE([HAVE_EVP_SHA224], [], [Define if you have EVP_sha224/256 in openssl]),
++    : ,
+     [[#include <openssl/evp.h>]])
+    AC_CHECK_DECL([EVP_sha384],
+-    : ,
+     AC_DEFINE([HAVE_EVP_SHA384], [], [Define if you have EVP_sha384/256 in openssl]),
++    : ,
+     [[#include <openssl/evp.h>]])
+ fi
+ 
+diff -up net-snmp-5.7.2/configure.orig net-snmp-5.7.2/configure
+--- net-snmp-5.7.2/configure.orig	2019-11-20 15:39:21.930543804 +0100
++++ net-snmp-5.7.2/configure	2019-11-20 15:53:07.936262052 +0100
+@@ -22887,20 +22887,16 @@ if test "x$TLSPROG" = "xyes"; then
+    ac_fn_c_check_decl "$LINENO" "EVP_sha224" "ac_cv_have_decl_EVP_sha224" "#include <openssl/evp.h>
+ "
+ if test "x$ac_cv_have_decl_EVP_sha224" = xyes; then :
+-  :
+-else
+-
+-$as_echo "#define HAVE_EVP_SHA224 /**/" >>confdefs.h
++  $as_echo "#define HAVE_EVP_SHA224 /**/" >>confdefs.h
++else :
+ 
+ fi
+ 
+    ac_fn_c_check_decl "$LINENO" "EVP_sha384" "ac_cv_have_decl_EVP_sha384" "#include <openssl/evp.h>
+ "
+ if test "x$ac_cv_have_decl_EVP_sha384" = xyes; then :
+-  :
+-else
+-
+-$as_echo "#define HAVE_EVP_SHA384 /**/" >>confdefs.h
++  $as_echo "#define HAVE_EVP_SHA384 /**/" >>confdefs.h
++else :
+ 
+ fi
+ 

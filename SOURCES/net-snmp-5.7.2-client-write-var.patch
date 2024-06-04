@@ -1,0 +1,128 @@
+1151310 - snmptrap can't create (or write to) /var/lib/net-snmp/snmpapp.conf if isn't run under root
+Backported from:
+
+commit 53ee5f1d240ac90adae935538bdc2ca13a8caa32
+Author: Jan Safranek <jsafranek@users.sourceforge.net>
+Date:   Wed Feb 18 16:29:16 2015 +0100
+
+    CHANGES: snmplib: Fixed reporting 'error writing to /var/xxx/snmpapp.conf'.
+    
+    When a client utility, such as snmptrap, tries to write to its persistent
+    configuration file (/var/net-snmp/snmpapp.conf in Fedora), do not report
+    any error when open() fails. The tool is typically run by non-root, who
+    cannot write to /var and the error just confuses users.
+    
+    And when doing it, make sure that "snmpapp" string is defined only on one
+    place, just in case.
+
+diff -up net-snmp-5.7.2/agent/mibgroup/disman/expression/expValueTable.c.test net-snmp-5.7.2/agent/mibgroup/disman/expression/expValueTable.c
+--- net-snmp-5.7.2/agent/mibgroup/disman/expression/expValueTable.c.test	2012-10-10 00:28:58.000000000 +0200
++++ net-snmp-5.7.2/agent/mibgroup/disman/expression/expValueTable.c	2015-06-18 14:06:47.871027563 +0200
+@@ -127,7 +127,7 @@ init_expValueTable(void)
+     REGISTER_MIB("expValueTable",
+                  expValueTable_variables, variable2,
+                  expValueTable_variables_oid);
+-    init_snmp("snmpapp");
++    init_snmp(NETSNMP_APPLICATION_CONFIG_TYPE);
+ 
+     /*
+      * Initialize a "session" that defines who we're going to talk to
+diff -up net-snmp-5.7.2/apps/snmptranslate.c.test net-snmp-5.7.2/apps/snmptranslate.c
+--- net-snmp-5.7.2/apps/snmptranslate.c.test	2012-10-10 00:28:58.000000000 +0200
++++ net-snmp-5.7.2/apps/snmptranslate.c	2015-06-18 14:06:47.872027568 +0200
+@@ -236,7 +236,7 @@ main(int argc, char *argv[])
+         }
+     }
+ 
+-    init_snmp("snmpapp");
++    init_snmp(NETSNMP_APPLICATION_CONFIG_TYPE);
+     if (optind < argc)
+         current_name = argv[optind];
+ 
+diff -up net-snmp-5.7.2/apps/snmptrap.c.test net-snmp-5.7.2/apps/snmptrap.c
+--- net-snmp-5.7.2/apps/snmptrap.c.test	2012-10-10 00:28:58.000000000 +0200
++++ net-snmp-5.7.2/apps/snmptrap.c	2015-06-18 14:06:47.872027568 +0200
+@@ -386,7 +386,7 @@ main(int argc, char *argv[])
+         snmp_free_pdu(response);
+ 
+     snmp_close(ss);
+-    snmp_shutdown("snmpapp");
++    snmp_shutdown(NETSNMP_APPLICATION_CONFIG_TYPE);
+     SOCK_CLEANUP;
+     return exitval;
+ }
+diff -up net-snmp-5.7.2/include/net-snmp/library/read_config.h.test net-snmp-5.7.2/include/net-snmp/library/read_config.h
+--- net-snmp-5.7.2/include/net-snmp/library/read_config.h.test	2012-10-10 00:28:58.000000000 +0200
++++ net-snmp-5.7.2/include/net-snmp/library/read_config.h	2015-06-18 14:06:47.873027572 +0200
+@@ -15,6 +15,12 @@ extern          "C" {
+ #define PREMIB_CONFIG 1
+ #define EITHER_CONFIG 2
+ 
++/*
++ * Value of 'type' parameter of various snmp_config calls,
++ * used by Net-SNMP client utilities.
++ */
++#define NETSNMP_APPLICATION_CONFIG_TYPE "snmpapp"
++
+ #include <net-snmp/config_api.h>
+ 
+     /*
+diff -up net-snmp-5.7.2/snmplib/read_config.c.test net-snmp-5.7.2/snmplib/read_config.c
+--- net-snmp-5.7.2/snmplib/read_config.c.test	2012-10-10 00:28:58.000000000 +0200
++++ net-snmp-5.7.2/snmplib/read_config.c	2015-06-18 14:06:47.874027577 +0200
+@@ -1540,7 +1540,14 @@ read_config_store(const char *type, cons
+         DEBUGMSGTL(("read_config:store", "storing: %s\n", line));
+         fclose(fout);
+     } else {
+-        snmp_log(LOG_ERR, "read_config_store open failure on %s\n", filep);
++        if (strcmp(NETSNMP_APPLICATION_CONFIG_TYPE, type) != 0) {
++            /*
++             * Ignore this error in client utilities, they can run with random
++             * UID/GID and typically cannot write to /var. Error message just
++             * confuses people.
++             */
++            snmp_log(LOG_ERR, "read_config_store open failure on %s");
++        }
+     }
+ #ifdef NETSNMP_PERSISTENT_MASK
+     umask(oldmask);
+diff -up net-snmp-5.7.2/snmplib/snmp_parse_args.c.test net-snmp-5.7.2/snmplib/snmp_parse_args.c
+--- net-snmp-5.7.2/snmplib/snmp_parse_args.c.test	2012-10-10 00:28:58.000000000 +0200
++++ net-snmp-5.7.2/snmplib/snmp_parse_args.c	2015-06-18 14:06:47.874027577 +0200
+@@ -250,7 +250,7 @@ netsnmp_parse_args(int argc,
+             break;
+ 
+         case 'H':
+-            init_snmp("snmpapp");
++            init_snmp(NETSNMP_APPLICATION_CONFIG_TYPE);
+             fprintf(stderr, "Configuration directives understood:\n");
+             read_config_print_usage("  ");
+             return (NETSNMP_PARSE_ARGS_SUCCESS_EXIT);
+@@ -640,7 +640,7 @@ netsnmp_parse_args(int argc,
+     /*
+      * read in MIB database and initialize the snmp library
+      */
+-    init_snmp("snmpapp");
++    init_snmp(NETSNMP_APPLICATION_CONFIG_TYPE);
+ 
+     /*
+      * session default version 
+commit 653da2f955f88d7419363e6d31f2b5f0ffdc4f73
+Author: Jan Safranek <jsafranek@users.sourceforge.net>
+Date:   Thu Feb 19 13:40:37 2015 +0100
+
+    Fixed missing printf argument from previous commit.
+
+diff --git a/snmplib/read_config.c b/snmplib/read_config.c
+index 6157fc6..2972232 100644
+--- a/snmplib/read_config.c
++++ b/snmplib/read_config.c
+@@ -1317,7 +1317,7 @@ read_config_store(const char *type, const char *line)
+              * UID/GID and typically cannot write to /var. Error message just
+              * confuses people.
+              */
+-            snmp_log(LOG_ERR, "read_config_store open failure on %s");
++            snmp_log(LOG_ERR, "read_config_store open failure on %s\n", filep);
+         }
+     }
+ #ifdef NETSNMP_PERSISTENT_MASK

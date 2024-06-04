@@ -1,0 +1,22 @@
+1125793 - [RHEL6] net-snmp "storageUseNFS 2" option does not report NFS mount as "Fixed Disks"
+1193006 - net-snmp "storageUseNFS 2" option does not report NFS mount as "Fixed Disks"
+
+commit e69e09f8c316cc1bf2456cdc837c487ba3b03837
+Author: Jan Safranek <jsafranek@users.sourceforge.net>
+Date:   Mon Jan 26 13:29:49 2015 +0100
+
+    Fixed storageUseNFS functionality in hrStorageTable.
+
+diff --git a/agent/mibgroup/host/hrh_storage.c b/agent/mibgroup/host/hrh_storage.c
+index 96b7198..61ead75 100644
+--- a/agent/mibgroup/host/hrh_storage.c
++++ b/agent/mibgroup/host/hrh_storage.c
+@@ -384,7 +384,7 @@ really_try_next:
+         return (u_char *) & long_return;
+     case HRSTORE_TYPE:
+         if (store_idx > NETSNMP_MEM_TYPE_MAX)
+-            if (HRFS_entry->flags & NETSNMP_FS_FLAG_REMOTE )
++            if (HRFS_entry->flags & NETSNMP_FS_FLAG_REMOTE && storageUseNFS == 1)
+                 storage_type_id[storage_type_len - 1] = 10;     /* Network Disk */
+             else if (HRFS_entry->flags & NETSNMP_FS_FLAG_REMOVE )
+                 storage_type_id[storage_type_len - 1] = 5;      /* Removable Disk */

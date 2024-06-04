@@ -1,0 +1,27 @@
+978398 - net-snmp does not honor configuration file look-ups as specified in man
+
+commit 9bd0413bfbdcd845413c135bbff8771fa7130809
+Author: Jan Safranek <jsafranek@users.sourceforge.net>
+Date:   Mon Feb 11 11:57:01 2013 +0100
+
+    Explicitly enumerate configuration files.
+    
+    The generic conf and local.conf extensions were interpreted as my.snmp.conf and my.other.snmp.local.conf by some customers.
+
+diff -up net-snmp-5.7.2/man/snmp_config.5.defptch net-snmp-5.7.2/man/snmp_config.5.def
+--- net-snmp-5.7.2/man/snmp_config.5.defptch	2013-06-26 16:14:33.039284390 +0200
++++ net-snmp-5.7.2/man/snmp_config.5.def	2013-06-26 16:14:49.616233272 +0200
+@@ -11,9 +11,10 @@ found and read from.  By default, the ap
+ configuration files in the following 4 directories, in order:
+ SYSCONFDIR/snmp,
+ DATADIR/snmp, /usr/lib(64)/snmp, and $HOME/.snmp.  In each of these
+-directories, it looks for files with the extension of both
+-.IR conf " and " local.conf
+-(reading the second ones last).  In this manner, there are
++directories, it looks for files snmp.conf, snmpd.conf and/or
++snmptrapd.conf, as well as snmp.local.conf, snmpd.local.conf
++and/or snmptrapd.local.conf. *.local.conf are always
++read last. In this manner, there are
+ 8 default places a configuration file can exist for any given
+ configuration file type.
+ .PP

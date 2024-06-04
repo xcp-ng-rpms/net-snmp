@@ -1,0 +1,12 @@
+diff -urNp old/agent/mibgroup/agentx/master.c new/agent/mibgroup/agentx/master.c
+--- old/agent/mibgroup/agentx/master.c	2017-03-29 11:33:29.643295606 +0200
++++ new/agent/mibgroup/agentx/master.c	2017-03-29 11:36:56.532670645 +0200
+@@ -222,7 +222,7 @@ agentx_got_response(int operation,
+         /* response is too late, free the cache */
+         if (magic)
+             netsnmp_free_delegated_cache((netsnmp_delegated_cache*) magic);
+-        return 0;
++        return 1;
+     }
+     requests = cache->requests;
+ 

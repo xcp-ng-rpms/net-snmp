@@ -1,0 +1,31 @@
+989498 - vzfs missing in hrStorage in an Virtuozzo Container
+861152 - simfs missing in hrStorage in an OpenVZ container
+
+diff -up net-snmp-5.7.2/agent/mibgroup/hardware/fsys/fsys_mntent.c.orig net-snmp-5.7.2/agent/mibgroup/hardware/fsys/fsys_mntent.c
+--- net-snmp-5.7.2/agent/mibgroup/hardware/fsys/fsys_mntent.c.orig	2013-08-12 15:38:17.602977746 +0200
++++ net-snmp-5.7.2/agent/mibgroup/hardware/fsys/fsys_mntent.c	2013-08-12 15:38:42.018888560 +0200
+@@ -139,6 +139,8 @@ _fsys_type( char *typename )
+               !strcmp(typename, MNTTYPE_REISERFS) ||
+               !strcmp(typename, MNTTYPE_OCFS2) ||
+               !strcmp(typename, MNTTYPE_CVFS) ||
++              !strcmp(typename, MNTTYPE_SIMFS) ||
++              !strcmp(typename, MNTTYPE_VZFS) ||
+               !strcmp(typename, MNTTYPE_LOFS))
+        return NETSNMP_FS_TYPE_OTHER;
+ 
+diff -up net-snmp-5.7.2/agent/mibgroup/hardware/fsys/mnttypes.h.orig net-snmp-5.7.2/agent/mibgroup/hardware/fsys/mnttypes.h
+--- net-snmp-5.7.2/agent/mibgroup/hardware/fsys/mnttypes.h.orig	2013-08-12 15:38:52.112851691 +0200
++++ net-snmp-5.7.2/agent/mibgroup/hardware/fsys/mnttypes.h	2013-08-12 15:39:16.063764218 +0200
+@@ -142,6 +142,12 @@
+ #ifndef MNTTYPE_CVFS
+ #define MNTTYPE_CVFS     "cvfs"
+ #endif
++#ifndef MNTTYPE_SIMFS
++#define MNTTYPE_SIMFS     "simfs"
++#endif
++#ifndef MNTTYPE_VZFS
++#define MNTTYPE_VZFS     "vzfs"
++#endif
+ 
+ /*
+  *  File systems to skip

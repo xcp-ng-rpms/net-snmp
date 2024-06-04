@@ -1,0 +1,12 @@
+diff -urNp a/agent/mibgroup/ip-mib/data_access/ipaddress_linux.c b/agent/mibgroup/ip-mib/data_access/ipaddress_linux.c
+--- a/agent/mibgroup/ip-mib/data_access/ipaddress_linux.c	2020-06-04 13:22:32.103942940 +0200
++++ b/agent/mibgroup/ip-mib/data_access/ipaddress_linux.c	2020-06-04 13:24:44.345231759 +0200
+@@ -232,7 +232,7 @@ _load_v6(netsnmp_container *container, i
+ 
+ #define PROCFILE "/proc/net/if_inet6"
+     if (!(in = fopen(PROCFILE, "r"))) {
+-        DEBUGMSGTL(("access:ipaddress:container","could not open " PROCFILE "\n"));
++        NETSNMP_LOGONCE((LOG_ERR, "ipaddress_linux: could not open " PROCFILE));
+         return -2;
+     }
+ 

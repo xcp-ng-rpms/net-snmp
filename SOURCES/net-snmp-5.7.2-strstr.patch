@@ -1,0 +1,13 @@
+diff -urNp old/agent/mibgroup/host/data_access/swinst_rpm.c new/agent/mibgroup/host/data_access/swinst_rpm.c
+--- old/agent/mibgroup/host/data_access/swinst_rpm.c	2012-10-10 00:28:58.000000000 +0200
++++ new/agent/mibgroup/host/data_access/swinst_rpm.c	2017-03-23 13:39:44.695386498 +0100
+@@ -129,7 +129,7 @@ netsnmp_swinst_arch_load( netsnmp_contai
+                                       "%s-%s-%s", n, v, r);
+         if (entry->swName_len > sizeof(entry->swName))
+             entry->swName_len = sizeof(entry->swName);
+-        entry->swType = (NULL != strstr( g, "System Environment"))
++        entry->swType = (g != NULL && NULL != strstr( g, "System Environment"))
+                         ? 2      /* operatingSystem */
+                         : 4;     /*  application    */
+ 
+

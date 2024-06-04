@@ -1,0 +1,4 @@
+# snmpd command line options
+# '-f' is implicitly added by snmpd systemd unit file
+# OPTIONS="-LS0-6d"
+OPTIONS="-c /etc/snmp/snmpd.xs.conf -m +XENSERVER-MIB -Dxenserver"

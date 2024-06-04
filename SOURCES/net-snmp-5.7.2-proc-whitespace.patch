@@ -1,0 +1,27 @@
+diff -urNp a/agent/mibgroup/host/data_access/swrun_procfs_status.c b/agent/mibgroup/host/data_access/swrun_procfs_status.c
+--- a/agent/mibgroup/host/data_access/swrun_procfs_status.c	2020-06-04 13:58:26.944876713 +0200
++++ b/agent/mibgroup/host/data_access/swrun_procfs_status.c	2020-06-04 14:01:36.146665629 +0200
+@@ -57,7 +57,7 @@ netsnmp_arch_swrun_container_load( netsn
+     FILE                *fp;
+     int                  pid, i;
+     unsigned long long   cpu;
+-    char                 buf[BUFSIZ], buf2[BUFSIZ], *cp;
++    char                 buf[BUFSIZ], buf2[BUFSIZ], *cp, *cp1;
+     netsnmp_swrun_entry *entry;
+     
+     procdir = opendir("/proc");
+@@ -169,8 +169,12 @@ netsnmp_arch_swrun_container_load( netsn
+         cp = buf;
+         while ( ' ' != *(cp++))    /* Skip first field */
+             ;
+-        while ( ' ' != *(cp++))    /* Skip second field */
+-            ;
++        cp1 = cp;                  /* Skip second field */
++        while (*cp1) {
++            if (*cp1 == ')') cp = cp1;
++            cp1++;
++        }
++        cp += 2;
+         
+         switch (*cp) {
+         case 'R':  entry->hrSWRunStatus = HRSWRUNSTATUS_RUNNING;

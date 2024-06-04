@@ -1,0 +1,16 @@
+1087801 - proxied OIDs unspecified in proxy statement in snmpd.conf
+
+From RHEL 6 patch.
+
+diff -up net-snmp-5.7.2/agent/mibgroup/ucd-snmp/proxy.c.test2 net-snmp-5.7.2/agent/mibgroup/ucd-snmp/proxy.c
+--- net-snmp-5.7.2/agent/mibgroup/ucd-snmp/proxy.c.test2	2014-04-14 14:24:00.146782548 +0200
++++ net-snmp-5.7.2/agent/mibgroup/ucd-snmp/proxy.c	2014-04-14 14:24:20.416760913 +0200
+@@ -412,7 +412,7 @@ proxy_handler(netsnmp_mib_handler *handl
+         if (sp->base_len &&
+             reqinfo->mode == MODE_GETNEXT &&
+             (snmp_oid_compare(ourname, ourlength,
+-                              sp->base, sp->base_len) < 0)) {
++                              sp->name, sp->name_len) < 0)) {
+             DEBUGMSGTL(( "proxy", "request is out of registered range\n"));
+             /*
+              * Create GETNEXT request with an OID so the

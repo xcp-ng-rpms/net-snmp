@@ -1,0 +1,21 @@
+diff -urNp O/agent/mibgroup/hardware/fsys/fsys_mntctl.c N/agent/mibgroup/hardware/fsys/fsys_mntctl.c
+--- O/agent/mibgroup/hardware/fsys/fsys_mntctl.c	2019-03-18 12:22:21.655280129 +0100
++++ N/agent/mibgroup/hardware/fsys/fsys_mntctl.c	2019-03-18 12:24:38.481898394 +0100
+@@ -89,7 +89,6 @@ netsnmp_fsys_arch_load( void )
+     char          *path;
+     struct statfs  stat_buf;
+     netsnmp_fsys_info *entry;
+-    char               tmpbuf[1024];
+ 
+     /*
+      * Retrieve information about the currently mounted filesystems...
+@@ -163,8 +162,7 @@ netsnmp_fsys_arch_load( void )
+             continue;
+ 
+         if ( statfs( entry->path, &stat_buf ) < 0 ) {
+-            snprintf( tmpbuf, sizeof(tmpbuf), "Cannot statfs %s\n", entry->path );
+-            snmp_log_perror( tmpbuf );
++            NETSNMP_LOGONCE(( LOG_ERROR, "Cannot statfs %s\n", entry->path ));
+             continue;
+         }
+         entry->units =  stat_buf.f_bsize;

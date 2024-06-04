@@ -1,0 +1,25 @@
+Bug 1073237 - "skipNFSInHostResources" option in net-snmp does not skip mvfs type filesystem (IBM clearcase)
+Bug 1086606
+
+Non-ABI and non-behavior breaking patch.
+
+Upstream (upcoming 5.8.0 release) will report mvfs as 'NFS' filesystem, which
+is then skipped when skipNFSInHostResources is set. We can't do so in RHEL
+minor updates -> this patch.
+
+diff -up net-snmp-5.5/agent/mibgroup/hardware/fsys/fsys_mntent.c.mvfs net-snmp-5.5/agent/mibgroup/hardware/fsys/fsys_mntent.c
+--- net-snmp-5.5/agent/mibgroup/hardware/fsys/fsys_mntent.c.mvfs	2014-04-08 12:56:42.419201488 +0200
++++ net-snmp-5.5/agent/mibgroup/hardware/fsys/fsys_mntent.c	2014-04-11 09:41:13.374316570 +0200
+@@ -208,6 +208,12 @@ netsnmp_fsys_arch_load( void )
+ 
+         if ( _fsys_remote( entry->device, entry->type ))
+             entry->flags |= NETSNMP_FS_FLAG_REMOTE;
++        /* Mark also mvfs (reported as NETSNMP_FS_TYPE_OTHER) as remote.
++         * In upstream, it's solved as reporting mvfs as NFS
++         * (-> behavior change, forbidden in RHEL minor updates).
++         */
++        if (!strcmp(m->NSFS_TYPE, MNTTYPE_MVFS))
++            entry->flags |= NETSNMP_FS_FLAG_REMOTE;
+ #if HAVE_HASMNTOPT
+         if (hasmntopt( m, "ro" ))
+             entry->flags |= NETSNMP_FS_FLAG_RONLY;

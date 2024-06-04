@@ -1,0 +1,51 @@
+1050971 - snmpd segfault with entry->sysUpTime = *sysUT_var.val.integer
+
+commit 9f4c572614091404decba0d4ef1a4cbaf9fc5bd2
+Author: Jan Safranek <jsafranek@users.sourceforge.net>
+Date:   Thu Jan 9 13:35:27 2014 +0100
+
+    CHANGES: snmpd: Fixed monitoring based on non-delta trigger.
+    
+    snmpd crashed wit following snmpd.conf:
+        monitor -s -D -r 10 -e LOGMATCH -o logMatchCurrentCount "Log Match" != logMatchCurrentCount
+        logmatch LoginFailure1 /var/log/secure 10 su: .*fail.*
+    
+    The reason was unitialized variable sysUT_var in mteTrigger_run(), it was
+    filled only if the trigger was delta-valued, while its value was used for all
+    triggers.
+    
+    With this patch, sysUT_var is filled for all code branches where it is needed.
+
+diff --git a/agent/mibgroup/disman/event/mteTrigger.c b/agent/mibgroup/disman/event/mteTrigger.c
+index bb585ed..11cb5b7 100644
+--- a/agent/mibgroup/disman/event/mteTrigger.c
++++ b/agent/mibgroup/disman/event/mteTrigger.c
+@@ -533,6 +533,13 @@ mteTrigger_run( unsigned int reg, void *clientarg)
+         } /* !old_results - end of else block */
+     } /* MTE_TRIGGER_EXISTENCE */
+ 
++    /*
++     * We'll need sysUpTime.0 regardless...
++     */
++    DEBUGMSGTL(("disman:event:delta", "retrieve sysUpTime.0\n"));
++    memset( &sysUT_var, 0, sizeof( netsnmp_variable_list ));
++    snmp_set_var_objid( &sysUT_var, _sysUpTime_instance, _sysUpTime_inst_len );
++    netsnmp_query_get(  &sysUT_var, entry->session );
+ 
+     if (( entry->mteTriggerTest & MTE_TRIGGER_BOOLEAN   ) ||
+         ( entry->mteTriggerTest & MTE_TRIGGER_THRESHOLD )) {
+@@ -582,14 +589,6 @@ mteTrigger_run( unsigned int reg, void *clientarg)
+          * (including sysUpTime.0 if not specified explicitly).
+          */
+         if ( entry->flags & MTE_TRIGGER_FLAG_DELTA ) {
+-            /*
+-             * We'll need sysUpTime.0 regardless...
+-             */
+-            DEBUGMSGTL(("disman:event:delta", "retrieve sysUpTime.0\n"));
+-            memset( &sysUT_var, 0, sizeof( netsnmp_variable_list ));
+-            snmp_set_var_objid( &sysUT_var, _sysUpTime_instance,
+-                                            _sysUpTime_inst_len );
+-            netsnmp_query_get(  &sysUT_var, entry->session );
+ 
+             if (!(entry->flags & MTE_TRIGGER_FLAG_SYSUPT)) {
+                 /*

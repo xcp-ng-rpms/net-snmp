@@ -1,0 +1,50 @@
+diff -urNp a/snmplib/keytools.c b/snmplib/keytools.c
+--- a/snmplib/keytools.c	2018-11-26 14:48:35.967812631 +0100
++++ b/snmplib/keytools.c	2018-11-26 15:21:14.758817675 +0100
+@@ -153,19 +153,21 @@ generate_Ku(const oid * hashtype, u_int
+     ctx = EVP_MD_CTX_create();
+ #else
+     ctx = malloc(sizeof(*ctx));
+-    EVP_MD_CTX_init(ctx);
++    if(!EVP_MD_CTX_init(ctx)){
++        QUITFUN(SNMPERR_GENERR, generate_Ku_quit);
++    }
+ #endif
+ #ifndef NETSNMP_DISABLE_MD5
+     if (ISTRANSFORM(hashtype, HMACMD5Auth)) {
+         if (!EVP_DigestInit(ctx, EVP_md5()))
+             /* MD5 not supported */
+-            return SNMPERR_GENERR;
++            QUITFUN(SNMPERR_GENERR, generate_Ku_quit);
+     } else
+ #endif
+         if (ISTRANSFORM(hashtype, HMACSHA1Auth)) {
+             if (!EVP_DigestInit(ctx, EVP_sha1()))
+                 /* SHA1 not supported */
+-                return SNMPERR_GENERR;
++                QUITFUN(SNMPERR_GENERR, generate_Ku_quit);
+         } else {
+             QUITFUN(SNMPERR_GENERR, generate_Ku_quit);
+         }
+diff -urNp a/snmplib/scapi.c b/snmplib/scapi.c
+--- a/snmplib/scapi.c	2018-11-26 14:48:35.967812631 +0100
++++ b/snmplib/scapi.c	2018-11-26 15:12:19.296751273 +0100
+@@ -498,7 +498,8 @@ sc_hash(const oid * hashtype, size_t has
+ #endif
+     if (!EVP_DigestInit(cptr, hashfn)) {
+         /* requested hash function is not available */
+-        return SNMPERR_SC_NOT_CONFIGURED;
++        rval = SNMPERR_SC_NOT_CONFIGURED;
++	goto sc_hash_type_quit;
+     }
+ 
+ /** pass the data */
+@@ -507,6 +508,8 @@ sc_hash(const oid * hashtype, size_t has
+ /** do the final pass */
+     EVP_DigestFinal(cptr, MAC, &tmp_len);
+     *MAC_len = tmp_len;
++
++sc_hash_type_quit:
+ #ifdef HAVE_EVP_MD_CTX_DESTROY
+     EVP_MD_CTX_destroy(cptr);
+ #else

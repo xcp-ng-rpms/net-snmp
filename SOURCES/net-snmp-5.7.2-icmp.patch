@@ -1,0 +1,12 @@
+diff -urNp old/agent/mibgroup/mibII/kernel_linux.c new/agent/mibgroup/mibII/kernel_linux.c
+--- old/agent/mibgroup/mibII/kernel_linux.c	2019-04-02 13:54:36.000548869 +0200
++++ new/agent/mibgroup/mibII/kernel_linux.c	2019-04-02 14:09:33.909641083 +0200
+@@ -29,7 +29,7 @@ struct udp_mib  cached_udp_mib;
+ struct udp6_mib  cached_udp6_mib;
+ 
+ #define IP_STATS_LINE	"Ip: %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu"
+-#define ICMP_STATS_LINE	"Icmp: %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu"
++#define ICMP_STATS_LINE	"Icmp: %lu %lu %*lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu"
+ #define ICMP_MSG_STATS_LINE "IcmpMsg: "
+ #define TCP_STATS_LINE	"Tcp: %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu"
+ #define UDP_STATS_LINE	"Udp: %lu %lu %lu %lu"

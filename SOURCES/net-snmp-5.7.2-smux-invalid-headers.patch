@@ -1,0 +1,25 @@
+1140236 - Segfault when starting snmpd
+
+commit 95b87c7fe990869f6b4ce62c0b2f0382e47699a5
+Author: Jan Safranek <jsafranek@users.sourceforge.net>
+Date:   Thu Feb 19 15:14:10 2015 +0100
+
+    Add extra check to throw away invalid SMUX messages.
+    
+    Otherwise snmpd crashes on NULL pointer dereference.
+
+diff --git a/agent/mibgroup/smux/smux.c b/agent/mibgroup/smux/smux.c
+index fd96710..02d02d2 100644
+--- a/agent/mibgroup/smux/smux.c
++++ b/agent/mibgroup/smux/smux.c
+@@ -752,6 +752,10 @@ smux_pdu_process(int fd, u_char * data, size_t length)
+     while (error == 0 && ptr != NULL && ptr < data + length) {
+         len = length - (ptr - data);
+         ptr = asn_parse_header(ptr, &len, &type);
++        if (ptr == NULL) {
++            DEBUGMSGTL(("smux", "[smux_pdu_process] cannot parse header\n"));
++            break;
++        }
+         DEBUGMSGTL(("smux", "[smux_pdu_process] type is %d\n",
+                     (int) type));
+         switch (type) {

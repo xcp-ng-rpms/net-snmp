@@ -1,0 +1,103 @@
+diff -urNp a/snmplib/snmp_api.c b/snmplib/snmp_api.c
+--- a/snmplib/snmp_api.c	2020-09-29 14:08:09.821479662 +0200
++++ b/snmplib/snmp_api.c	2020-10-01 10:15:46.607374362 +0200
+@@ -2731,7 +2731,7 @@ snmpv3_packet_build(netsnmp_session * se
+     /*
+      * build a scopedPDU structure into spdu_buf
+      */
+-    spdu_buf_len = SNMP_MAX_MSG_SIZE;
++    spdu_buf_len = sizeof(spdu_buf);
+     DEBUGDUMPSECTION("send", "ScopedPdu");
+     cp = snmpv3_scopedPDU_header_build(pdu, spdu_buf, &spdu_buf_len,
+                                        &spdu_hdr_e);
+@@ -2743,6 +2743,11 @@ snmpv3_packet_build(netsnmp_session * se
+      */
+     DEBUGPRINTPDUTYPE("send", ((pdu_data) ? *pdu_data : 0x00));
+     if (pdu_data) {
++        if (cp + pdu_data_len > spdu_buf + sizeof(spdu_buf)) {
++            snmp_log(LOG_ERR, "%s: PDU too big (%" NETSNMP_PRIz "d > %" NETSNMP_PRIz "d)\n",
++                     __func__, pdu_data_len, sizeof(spdu_buf));
++            return -1;
++        }
+         memcpy(cp, pdu_data, pdu_data_len);
+         cp += pdu_data_len;
+     } else {
+@@ -2756,7 +2761,7 @@ snmpv3_packet_build(netsnmp_session * se
+      * re-encode the actual ASN.1 length of the scopedPdu
+      */
+     spdu_len = cp - spdu_hdr_e; /* length of scopedPdu minus ASN.1 headers */
+-    spdu_buf_len = SNMP_MAX_MSG_SIZE;
++    spdu_buf_len = sizeof(spdu_buf);
+     if (asn_build_sequence(spdu_buf, &spdu_buf_len,
+                            (u_char) (ASN_SEQUENCE | ASN_CONSTRUCTOR),
+                            spdu_len) == NULL)
+@@ -2769,7 +2774,7 @@ snmpv3_packet_build(netsnmp_session * se
+      * message - the entire message to transmitted on the wire is returned
+      */
+     cp = NULL;
+-    *out_length = SNMP_MAX_MSG_SIZE;
++    *out_length = sizeof(spdu_buf);
+     DEBUGDUMPSECTION("send", "SM msgSecurityParameters");
+     sptr = find_sec_mod(pdu->securityModel);
+     if (sptr && sptr->encode_forward) {
+
+diff -urNp a/include/net-snmp/library/default_store.h b/include/net-snmp/library/default_store.h
+--- a/include/net-snmp/library/default_store.h	2022-03-07 10:50:12.425997555 +0100
++++ b/include/net-snmp/library/default_store.h	2022-03-07 12:51:07.968771327 +0100
+@@ -96,7 +96,7 @@ extern          "C" {
+ #define NETSNMP_DS_LIB_DNSSEC_WARN_ONLY     41 /* tread DNSSEC errors as warnings */
+ #define NETSNMP_DS_LIB_CLIENT_ADDR_USES_PORT 42 /* NETSNMP_DS_LIB_CLIENT_ADDR includes address and also port */
+ #define NETSNMP_DS_LIB_MAX_BOOL_ID          48 /* match NETSNMP_DS_MAX_SUBIDS */
+-
++#define NETSNMP_DS_LIB_MSG_SEND_MAX        16
+     /*
+      * library integers 
+      */
+diff -urNp a/include/net-snmp/library/snmp.h b/include/net-snmp/library/snmp.h
+--- a/include/net-snmp/library/snmp.h	2012-10-10 00:28:58.000000000 +0200
++++ b/include/net-snmp/library/snmp.h	2022-03-07 11:27:16.462066135 +0100
+@@ -40,6 +40,7 @@ SOFTWARE.
+ 
+ #define SNMP_MAX_LEN	    1500        /* typical maximum message size */
+ #define SNMP_MIN_MAX_LEN    484 /* minimum maximum message size */
++#define SNMP_MAX_PACKET_LEN (0x7fffffff)
+ 
+     /*
+      * SNMP versions 
+diff -urNp a/snmplib/snmp_api.c b/snmplib/snmp_api.c
+--- a/snmplib/snmp_api.c	2022-03-07 10:50:12.533998393 +0100
++++ b/snmplib/snmp_api.c	2022-03-07 11:18:17.857183065 +0100
+@@ -309,6 +309,24 @@ static const char *secLevelName[] = {
+ };
+ 
+ /*
++ * return configured max message size for outgoing packets
++ */
++int
++netsnmp_max_send_msg_size(void)
++{
++    u_int max = netsnmp_ds_get_int(NETSNMP_DS_LIBRARY_ID,
++                                   NETSNMP_DS_LIB_MSG_SEND_MAX);
++    if (0 == max)
++        max = SNMP_MAX_PACKET_LEN;
++    else if (max < SNMP_MIN_MAX_LEN)
++        max = SNMP_MIN_MAX_LEN; /* minimum max size per SNMP specs */
++    else if (max > SNMP_MAX_PACKET_LEN)
++        max = SNMP_MAX_PACKET_LEN;
++
++    return max;
++}
++
++/*
+  * Multiple threads may changes these variables.
+  * Suggest using the Single API, which does not use Sessions.
+  *
+@@ -737,7 +755,7 @@ snmp_sess_init(netsnmp_session * session
+     session->retries = SNMP_DEFAULT_RETRIES;
+     session->version = SNMP_DEFAULT_VERSION;
+     session->securityModel = SNMP_DEFAULT_SECMODEL;
+-    session->rcvMsgMaxSize = SNMP_MAX_MSG_SIZE;
++    session->rcvMsgMaxSize = netsnmp_max_send_msg_size();
+     session->flags |= SNMP_FLAGS_DONT_PROBE;
+ }
+ 

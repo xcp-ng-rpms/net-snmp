@@ -1,0 +1,41 @@
+Make net-snmp-create-v3-user multilib-clean
+
+The file had different NSC_AGENTLIBS on different architectures.
+
+Source: upstream
+
+commit 68300a9fb43568c5d833c48a2fef3ff16c2923c3
+Author: Jan Safranek <jsafranek@users.sourceforge.net>
+Date:   Thu Feb 7 10:14:33 2013 +0100
+
+    Remove unused variables.
+
+diff -up net-snmp-5.7.2/net-snmp-create-v3-user.in.multilib net-snmp-5.7.2/net-snmp-create-v3-user.in
+--- net-snmp-5.7.2/net-snmp-create-v3-user.in.multilib	2013-03-22 10:19:41.151901243 +0100
++++ net-snmp-5.7.2/net-snmp-create-v3-user.in	2013-03-22 10:20:02.476801266 +0100
+@@ -8,25 +8,7 @@
+ prefix=@prefix@
+ exec_prefix=@exec_prefix@
+ includedir=@includedir@
+-libdir=@libdir@
+ datarootdir=@datarootdir@
+-NSC_LDFLAGS="@LDFLAGS@"
+-NSC_INCLUDEDIR=${includedir}
+-NSC_LIBDIR=-L${libdir}
+-NSC_LIBS="@LIBS@"
+-NSC_AGENTLIBS="@AGENTLIBS@ @PERLLDOPTS_FOR_APPS@"
+-NSC_PREFIX=$prefix
+-NSC_EXEC_PREFIX=$exec_prefix
+-NSC_SRCDIR=@srcdir@
+-NSC_INCDIR=${NSC_PREFIX}/include
+-NSC_BASE_SUBAGENT_LIBS="-lnetsnmpagent -lnetsnmp"
+-NSC_BASE_AGENT_LIBS="-lnetsnmpagent -lnetsnmpmibs -lnetsnmp"
+-NSC_SRC_LIBDIRS="agent/.libs snmplib/.libs"
+-NSC_SRC_LIBDEPS="agent/.libs/libnetsnmpmibs.a agent/.libs/libnetsnmpagent.a snmplib/.libs/libnetsnmp.a"
+-
+-if test "x$NSC_SRCDIR" = "x." ; then
+-   NSC_SRCDIR="NET-SNMP-SOURCE-DIR"
+-fi
+ 
+ if @PSCMD@ | egrep ' snmpd *$' > /dev/null 2>&1 ; then
+     echo "Apparently at least one snmpd demon is already running."

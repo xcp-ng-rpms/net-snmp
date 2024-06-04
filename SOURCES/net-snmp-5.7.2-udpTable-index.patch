@@ -1,0 +1,21 @@
+Bug 1184433 - udpTable has wrong indices
+
+commit c5c435658032c26fde69978e2610c879b3a4bcc8
+Author: Niels Baggesen <nba@users.sourceforge.net>
+Date:   Thu Apr 16 18:56:55 2015 +0200
+
+    Patch #1300: Fix big endian / 64bit problem with Sparc by properly typing. Thanks to Eric Snowberg.
+
+diff --git a/agent/mibgroup/mibII/udpTable.c b/agent/mibgroup/mibII/udpTable.c
+index 57e967c..cc00b13 100644
+--- a/agent/mibgroup/mibII/udpTable.c
++++ b/agent/mibgroup/mibII/udpTable.c
+@@ -368,7 +368,7 @@ udpTable_next_entry( void **loop_context,
+ {
+     UDPTABLE_ENTRY_TYPE	 *entry = (UDPTABLE_ENTRY_TYPE *)*loop_context;
+     long port;
+-    long addr;
++    in_addr_t addr;
+ 
+     if (!entry)
+         return NULL;

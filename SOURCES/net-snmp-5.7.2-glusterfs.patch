@@ -1,0 +1,28 @@
+diff -urNp d/agent/mibgroup/hardware/fsys/fsys_mntent.c c/agent/mibgroup/hardware/fsys/fsys_mntent.c
+--- d/agent/mibgroup/hardware/fsys/fsys_mntent.c	2019-04-10 14:07:48.901299146 +0200
++++ c/agent/mibgroup/hardware/fsys/fsys_mntent.c	2019-07-31 10:31:36.330220324 +0200
+@@ -133,6 +133,8 @@ _fsys_type( char *typename )
+               !strcmp(typename, MNTTYPE_TMPFS) ||
+               !strcmp(typename, MNTTYPE_GFS) ||
+               !strcmp(typename, MNTTYPE_GFS2) ||
++              !strcmp(typename, MNTTYPE_GLUSTERFS) ||
++              !strcmp(typename, MNTTYPE_FUSEGLUSTERFS) ||    
+               !strcmp(typename, MNTTYPE_XFS) ||
+               !strcmp(typename, MNTTYPE_JFS) ||
+               !strcmp(typename, MNTTYPE_VXFS) ||
+diff -urNp d/agent/mibgroup/hardware/fsys/mnttypes.h c/agent/mibgroup/hardware/fsys/mnttypes.h
+--- d/agent/mibgroup/hardware/fsys/mnttypes.h	2019-04-10 14:07:48.901299146 +0200
++++ c/agent/mibgroup/hardware/fsys/mnttypes.h	2019-07-31 10:30:41.018819039 +0200
+@@ -121,6 +121,12 @@
+ #ifndef MNTTYPE_GFS2
+ #define MNTTYPE_GFS2     "gfs2"
+ #endif
++#ifndef MNTTYPE_GLUSTERFS
++#define MNTTYPE_GLUSTERFS         "glusterfs"
++#endif
++#ifndef MNTTYPE_FUSEGLUSTERFS
++#define MNTTYPE_FUSEGLUSTERFS     "fuse.glusterfs"
++#endif
+ #ifndef MNTTYPE_XFS
+ #define MNTTYPE_XFS      "xfs"
+ #endif

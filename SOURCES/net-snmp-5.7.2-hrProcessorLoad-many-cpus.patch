@@ -1,0 +1,22 @@
+1070076 - SNMP HRPROCESSORLOAD RETURNS INCORRECT VALUES FOR PROCESSOR #'S > 100
+
+commit eef2f64b46357b353c79504bc593535ebe7421e7
+Author: Niels Baggesen <nba@users.sourceforge.net>
+Date:   Thu Jan 23 16:27:07 2014 +0100
+
+    cpu_linux: support systems with more than 100 cpus.
+
+diff -up net-snmp-5.7.2/agent/mibgroup/hardware/cpu/cpu_linux.c.hrProcessorLoad-many-cpus net-snmp-5.7.2/agent/mibgroup/hardware/cpu/cpu_linux.c
+--- net-snmp-5.7.2/agent/mibgroup/hardware/cpu/cpu_linux.c.hrProcessorLoad-many-cpus	2015-01-16 10:01:49.728398670 +0100
++++ net-snmp-5.7.2/agent/mibgroup/hardware/cpu/cpu_linux.c	2015-01-16 10:02:58.796486160 +0100
+@@ -154,7 +154,9 @@ int netsnmp_cpu_arch_load( netsnmp_cache
+                 snmp_log_perror("Missing CPU info entry");
+                 break;
+             }
+-            b1 = b2+5; /* Skip "cpuN " */
++            b1 = b2; /* Skip "cpuN " */
++            while(*b1 != ' ') b1++;
++            b1++;
+         }
+ 
+         num_cpuline_elem = sscanf(b1, "%llu %llu %llu %llu %llu %llu %llu %llu %llu %llu",

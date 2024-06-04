@@ -1,0 +1,11 @@
+diff -urNp a/agent/mibgroup/if-mib/ifTable/ifTable_data_access.c b/agent/mibgroup/if-mib/ifTable/ifTable_data_access.c
+--- a/agent/mibgroup/if-mib/ifTable/ifTable_data_access.c	2019-07-29 12:58:53.871166649 +0200
++++ b/agent/mibgroup/if-mib/ifTable/ifTable_data_access.c	2019-07-29 13:02:34.718033022 +0200
+@@ -352,6 +352,7 @@ _check_interface_entry_for_updates(ifTab
+             rowreq_ctx->data.ifAdminStatus = IFADMINSTATUS_DOWN;
+             rowreq_ctx->data.ifOperStatus = IFOPERSTATUS_DOWN;
+             oper_changed = 1;
++            rowreq_ctx->data.ifLastChange = netsnmp_get_agent_uptime();
+         }
+         if (rowreq_ctx->known_missing) {
+             time_t now = netsnmp_get_agent_uptime();

@@ -1,0 +1,19 @@
+commit aff1fb31dac236bb5f8e641c92e5651f00fa4f7d
+Author: Jan Safranek <jsafranek@users.sourceforge.net>
+Date:   Thu Jul 30 11:25:48 2015 +0200
+
+    CHANGES: snmpd: restore read-write flag in hrFSTable when a device becomes writable
+
+diff --git a/agent/mibgroup/hardware/fsys/fsys_mntent.c b/agent/mibgroup/hardware/fsys/fsys_mntent.c
+index 6fe4ed4..8a12181 100644
+--- a/agent/mibgroup/hardware/fsys/fsys_mntent.c
++++ b/agent/mibgroup/hardware/fsys/fsys_mntent.c
+@@ -206,6 +206,8 @@ netsnmp_fsys_arch_load( void )
+ #if HAVE_HASMNTOPT
+         if (hasmntopt( m, "ro" ))
+             entry->flags |= NETSNMP_FS_FLAG_RONLY;
++        else
++            entry->flags &= ~NETSNMP_FS_FLAG_RONLY;
+ #endif
+         /*
+          *  The root device is presumably bootable.

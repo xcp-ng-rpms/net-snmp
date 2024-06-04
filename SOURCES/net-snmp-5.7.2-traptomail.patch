@@ -1,0 +1,11 @@
+diff -urNp a/local/traptoemail b/local/traptoemail
+--- a/local/traptoemail	2019-03-19 14:26:31.824021449 +0100
++++ b/local/traptoemail	2019-03-19 14:30:38.917515164 +0100
+@@ -63,7 +63,6 @@ $message->to(@ARGV) || die "failed to se
+ $message->data();
+ $message->datasend("To: " . join(", ",@ARGV) . "\n");
+ $message->datasend("From: $opts{f}\n");
+-$message->datasend("Date: ".strftime("%a, %e %b %Y %X %z", localtime())."\n");
+ $message->datasend("Subject: trap received from $hostname: $values[1]\n");
+ $message->datasend("\n");
+ $message->datasend("Host: $hostname ($ipaddress)\n");
