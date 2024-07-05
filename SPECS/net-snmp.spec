@@ -9,7 +9,7 @@
 Summary: A collection of SNMP protocol tools and libraries
 Name: net-snmp
 Version: 5.7.2
-Release: %{?xsrel}.1%{?dist}
+Release: %{?xsrel}.2%{?dist}
 Epoch: 1
 License: BSD
 Group: System Environment/Daemons
@@ -119,6 +119,9 @@ Patch87: net-snmp-5.7.2-flood-messages.patch
 Patch88: net-snmp-5.7.2-proc-whitespace.patch
 Patch89: net-snmp-5.7.2-CVE-2020-15862.patch
 Patch90: net-snmp-5.7.2-bulk.patch
+
+# XCP-ng patches
+Source100: net-snmp-5.7.2-no-XENSERVER-MIB.xcp-ng.patch
 
 Requires(post): chkconfig
 Requires(preun): chkconfig
@@ -330,7 +333,13 @@ install -m 755 %SOURCE2 ${RPM_BUILD_ROOT}%{_initrddir}/snmpd
 install -m 755 %SOURCE3 ${RPM_BUILD_ROOT}%{_initrddir}/snmptrapd
 
 install -d ${RPM_BUILD_ROOT}%{_sysconfdir}/sysconfig
-install -m 644 %SOURCE7 ${RPM_BUILD_ROOT}%{_sysconfdir}/sysconfig/snmpd
+
+# XCP-ng: patch /etc/sysconfig/snmpd
+cp %SOURCE7 net-snmpd.sysconfig
+patch -p1 < %SOURCE100
+install -m 644 net-snmpd.sysconfig ${RPM_BUILD_ROOT}%{_sysconfdir}/sysconfig/snmpd
+rm -f net-snmpd.sysconfig
+
 install -m 644 %SOURCE8 ${RPM_BUILD_ROOT}%{_sysconfdir}/sysconfig/snmptrapd
 
 # prepare /var/lib/net-snmp
@@ -520,6 +529,10 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Fri Jul 05 2024 Samuel Verschelde <stormi-xcp@ylix.fr> - 5.7.2-51.2
+- Add net-snmp-5.7.2-no-XENSERVER-MIB.xcp-ng.patch
+- Remove XenServer-specific options from /etc/sysconfig/snmpd
+
 * Mon Jun 03 2024 Samuel Verschelde <stormi-xcp@ylix.fr> - 5.7.2-51.1
 - Rebase on XS8's 5.7.2-51
 - Undo most changes from snmp.xs.conf, which are related to a proprietary implementation
