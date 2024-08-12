@@ -9,7 +9,7 @@
 Summary: A collection of SNMP protocol tools and libraries
 Name: net-snmp
 Version: 5.7.2
-Release: %{?xsrel}.2%{?dist}
+Release: %{?xsrel}.3%{?dist}
 Epoch: 1
 License: BSD
 Group: System Environment/Daemons
@@ -122,6 +122,11 @@ Patch90: net-snmp-5.7.2-bulk.patch
 
 # XCP-ng patches
 Source100: net-snmp-5.7.2-no-XENSERVER-MIB.xcp-ng.patch
+Patch1000: net-snmp-5.7.2-CVEs-2022-24805-24807-24808-24809-24810.patch
+Patch1001: net-snmp-5.7.2-CVE-2022-24806.patch
+Patch1002: net-snmp-5.7.2-CVE-2022-44793-1.patch
+Patch1003: net-snmp-5.7.2-CVE-2022-44793-2.patch
+Patch1004: net-snmp-5.7.2-CVE-2022-44793-3.patch
 
 Requires(post): chkconfig
 Requires(preun): chkconfig
@@ -529,6 +534,10 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Mon Aug 12 2024 Thierry Escande <thierry.escande@vates.tech> - 5.7.2-51.3
+- Backport patches for CVE-2022-24805, CVE-2022-24806, CVE-2022-24807,
+  CVE-2022-24808, CVE-2022-24809, CVE-2022-24810, and CVE-2022-44793
+
 * Fri Jul 05 2024 Samuel Verschelde <stormi-xcp@ylix.fr> - 5.7.2-51.2
 - Add net-snmp-5.7.2-no-XENSERVER-MIB.xcp-ng.patch
 - Remove XenServer-specific options from /etc/sysconfig/snmpd
