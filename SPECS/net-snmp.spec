@@ -1,6 +1,6 @@
-%global package_speccommit 7ce8043e42bed200b1857048447e270d8a7687cc
+%global package_speccommit b6ea450d730666c343f0f5485a2eb258dc842129
 %global usver 5.7.2
-%global xsver 51
+%global xsver 52
 %global xsrel %{xsver}%{?xscount}%{?xshash}
 
 # use nestnmp_check 0 to speed up packaging by disabling 'make test'
@@ -119,6 +119,7 @@ Patch87: net-snmp-5.7.2-flood-messages.patch
 Patch88: net-snmp-5.7.2-proc-whitespace.patch
 Patch89: net-snmp-5.7.2-CVE-2020-15862.patch
 Patch90: net-snmp-5.7.2-bulk.patch
+Patch91: 0001-CHANGES-snmpd-fix-bounds-checking-in-NET-SNMP-AGENT-.patch
 
 Requires(post): chkconfig
 Requires(preun): chkconfig
@@ -519,6 +520,9 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Wed Jul 31 2024 Deli Zhang <deli.zhang@cloud.com> - 5.7.2-52
+- CA-393002: Fix CVE-2022-24805 and CVE-2022-24809 issues
+
 * Wed Oct 25 2023 Deli Zhang <deli.zhang@cloud.com> - 5.7.2-51
 - CP-44170: Update default settings
 - CP-44169: Add XenServer SNMP Agent so
