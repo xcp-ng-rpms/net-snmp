@@ -1,6 +1,6 @@
-%global package_speccommit 7ce8043e42bed200b1857048447e270d8a7687cc
+%global package_speccommit b6ea450d730666c343f0f5485a2eb258dc842129
 %global usver 5.7.2
-%global xsver 51
+%global xsver 52
 %global xsrel %{xsver}%{?xscount}%{?xshash}
 
 # use nestnmp_check 0 to speed up packaging by disabling 'make test'
@@ -9,7 +9,7 @@
 Summary: A collection of SNMP protocol tools and libraries
 Name: net-snmp
 Version: 5.7.2
-Release: %{?xsrel}.3%{?dist}
+Release: %{?xsrel}.1%{?dist}
 Epoch: 1
 License: BSD
 Group: System Environment/Daemons
@@ -119,10 +119,10 @@ Patch87: net-snmp-5.7.2-flood-messages.patch
 Patch88: net-snmp-5.7.2-proc-whitespace.patch
 Patch89: net-snmp-5.7.2-CVE-2020-15862.patch
 Patch90: net-snmp-5.7.2-bulk.patch
+Patch91: 0001-CHANGES-snmpd-fix-bounds-checking-in-NET-SNMP-AGENT-.patch
 
 # XCP-ng patches
 Source100: net-snmp-5.7.2-no-XENSERVER-MIB.xcp-ng.patch
-Patch1000: net-snmp-5.7.2-CVEs-2022-24805-24807-24808-24809-24810.patch
 Patch1001: net-snmp-5.7.2-CVE-2022-24806.patch
 Patch1002: net-snmp-5.7.2-CVE-2022-44793-1.patch
 Patch1003: net-snmp-5.7.2-CVE-2022-44793-2.patch
@@ -534,6 +534,13 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Tue Mar 04 2025 Samuel Verschelde <stormi-xcp@ylix.fr> - 5.7.2-52.1
+- Rebase on 5.7.2-52
+- Replace our patch by upstream identical one
+- *** Upstream changelog ***
+  * Wed Jul 31 2024 Deli Zhang <deli.zhang@cloud.com> - 5.7.2-52
+  - CA-393002: Fix CVE-2022-24805 and CVE-2022-24809 issues
+
 * Mon Aug 12 2024 Thierry Escande <thierry.escande@vates.tech> - 5.7.2-51.3
 - Backport patches for CVE-2022-24805, CVE-2022-24806, CVE-2022-24807,
   CVE-2022-24808, CVE-2022-24809, CVE-2022-24810, and CVE-2022-44793
