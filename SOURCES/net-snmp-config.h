@@ -29,6 +29,8 @@
 #include "net-snmp-config-sparc64.h"
 #elif defined(__sparc__)
 #include "net-snmp-config-sparc.h"
+#elif defined(__aarch64__)
+#include "net-snmp-config-aarch64.h"
 #else
 #error "net-snmp-devel package does not work on your architecture"
 #endif
