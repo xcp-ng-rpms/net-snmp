@@ -15,7 +15,7 @@
 Summary:    A collection of SNMP protocol tools and libraries
 Name:       net-snmp
 Version:    5.9.3
-Release:    %{?xsrel}.1%{?dist}
+Release:    %{?xsrel}.2%{?dist}
 %if 0%{?xenserver} < 9
 Epoch:      1
 %global     epoch_str %{epoch}:
@@ -261,7 +261,7 @@ install -m 644 %SOURCE11 %{buildroot}%{_sysconfdir}/snmp/snmpd.xs.conf
 install -d %{buildroot}%{_sysconfdir}/sysconfig
 
 # XCP-ng: patch /etc/sysconfig/snmpd
-cp %SOURCE7 net-snmpd.sysconfig
+cp %{_sourcedir}/net-snmpd.sysconfig .
 patch -p1 < %SOURCE100
 install -m 644 net-snmpd.sysconfig ${RPM_BUILD_ROOT}%{_sysconfdir}/sysconfig/snmpd
 rm -f net-snmpd.sysconfig
@@ -417,6 +417,9 @@ LD_LIBRARY_PATH=%{buildroot}/%{_libdir} make test
 %{_libdir}/libnetsnmptrapd*.so.%{soname}*
 
 %changelog
+* Mon Mar 23 2026 Philippe Coval <philippe.coval@vates.tech> - 5.9.3-8.2
+- Fix snmpd config patching on install
+
 * Thu Jan 22 2026 Philippe Coval <philippe.coval@vates.tech> - 5.9.3-8.1
 - Rebuild for openssl-3
 - Remove obsolete net-snmp-5.7.2-CVE-2022-24806.patch
