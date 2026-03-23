@@ -15,7 +15,7 @@
 Summary:    A collection of SNMP protocol tools and libraries
 Name:       net-snmp
 Version:    5.9.3
-Release:    %{?xsrel}.2%{?dist}
+Release:    %{?xsrel}.2~XCPNG3094.1%{?dist}
 %if 0%{?xenserver} < 9
 Epoch:      1
 %global     epoch_str %{epoch}:
